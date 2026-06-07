@@ -21,7 +21,7 @@ def resolve_path(env_key, default_rel_path):
 MODEL_PATH = resolve_path('MODEL_PATH', 'models/fake_account_model.pkl')
 FEATURE_COLUMNS_PATH = resolve_path('FEATURE_COLUMNS_PATH', 'models/feature_columns.json')
 GRAPH_NODES_PATH = resolve_path('GRAPH_NODES_PATH', 'data/processed/graph_nodes.json')
-GRAPH_EDGES_PATH = resolve_path('GRAPH_EDGES_PATH', 'data/processed/graph_edges.json')
+GRAPH_EDGES_PATH = resolve_path('GRAPH_EDGES_PATH', 'data/processed/graph_edges.csv')
 ABT_PATH = resolve_path('ABT_PATH', 'data/abt/fake_account_abt.csv')
 USERS_CSV_PATH = resolve_path('USERS_CSV_PATH', 'data/raw/users.csv')
 

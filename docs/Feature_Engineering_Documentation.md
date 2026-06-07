@@ -137,7 +137,22 @@ Frekuensi penggunaan voucher.
 
 ---
 
-# 9. Rule Based Risk Scoring
+# 9. Graph Features (Fraud Ring)
+
+| Nama Fitur | Rumus / Library | Definisi Teknis | Interpretasi Bisnis |
+|------------|-----------------|-----------------|---------------------|
+| graph_degree | `user_graph.degree()` | Jumlah koneksi langsung ke user lain karena berbagi entitas | Indikator awal keterlibatan dalam sindikat |
+| connected_component_size | `len(component)` | Ukuran partisi jaringan tempat user berada | Mendeteksi *Fraud Ring* berskala masif |
+| graph_cluster_size | `len(ego_graph)` | Ukuran lingkaran pertemanan terdekat user | Mendeteksi kelompok fraud yang sangat terpusat |
+| shared_entity_count | *Aggregate* | Total seluruh hubungan berbagi entitas | Bukti tak terbantahkan manipulasi multi-akun |
+| shared_device_count | *Bipartite Edge* | Koneksi antar user akibat berbagi *device* | Indikasi *Device Farming / Emulator* |
+| shared_address_count | *Bipartite Edge* | Koneksi antar user akibat berbagi alamat | Sindikat pengiriman barang fiktif |
+| shared_payment_count | *Bipartite Edge* | Koneksi antar user akibat metode bayar sama | Indikasi pencucian uang / *voucher farming* |
+| shared_ip_count | *Bipartite Edge* | Koneksi antar user akibat IP yang sama | Serangan *bot* massal dari satu jaringan WiFi/VPN |
+
+---
+
+# 10. Rule Based Risk Scoring
 
 ## Scoring Rules
 
@@ -164,7 +179,7 @@ Maximum score = 100
 
 ---
 
-# 10. Output Dataset
+# 11. Output Dataset
 
 Output file:
 

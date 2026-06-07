@@ -1,3 +1,10 @@
+"""Purpose: Train and evaluate fraud detection models from the final ABT.
+Used by: manual training workflow and backend model artifacts.
+Depends on: fake_account_abt.csv, raw relationship CSVs, scikit-learn, joblib.
+Public functions: compute_max_per_user, add_shared_edges.
+Side effects: Writes model, feature column, metric, and diagnostic image artifacts.
+"""
+
 import os
 import sys
 import json
@@ -36,24 +43,38 @@ if not os.path.exists(ABT_PATH):
     
 df_abt = pd.read_csv(ABT_PATH)
 
-# --- 1.5. Merge Graph Features ---
+# --- 1.5. Ensure Graph Features Are Present ---
 graph_path = os.path.join(BASE_DIR, 'data', 'processed', 'user_graph_features.csv')
-if os.path.exists(graph_path):
+graph_feature_map = {
+    'graph_degree': 'degree',
+    'graph_cluster_size': 'cluster',
+    'connected_component_size': 'comp_size',
+    'shared_entity_count': 'shared_ent',
+    'shared_device_count': 'shared_device_count',
+    'shared_address_count': 'shared_address_count',
+    'shared_payment_count': 'shared_payment_count',
+    'shared_ip_count': 'shared_ip_count',
+}
+graph_feature_cols = list(graph_feature_map.values())
+missing_graph_cols = [col for col in graph_feature_cols if col not in df_abt.columns]
+
+if os.path.exists(graph_path) and missing_graph_cols:
     df_graph = pd.read_csv(graph_path)
     # Sesuaikan tata nama dengan skema ABT terbaru
-    df_graph = df_graph.rename(columns={
-        'user_id': 'uid',
-        'graph_degree': 'degree',
-        'graph_cluster_size': 'cluster',
-        'connected_component_size': 'comp_size',
-        'shared_entity_count': 'shared_ent'
-    })
-    df_abt = df_abt.merge(df_graph, on='uid', how='left')
+    df_graph = df_graph.rename(columns={'user_id': 'uid', **graph_feature_map})
+    merge_cols = ['uid'] + [col for col in missing_graph_cols if col in df_graph.columns]
+    df_abt = df_abt.merge(df_graph[merge_cols], on='uid', how='left')
     # Isi nilai kosong untuk antisipasi
-    df_abt.fillna(0, inplace=True)
-    print(f"Berhasil menggabungkan Fitur Graf. Total kolom sekarang: {df_abt.shape[1]}")
+    for col in merge_cols:
+        if col != 'uid':
+            df_abt[col] = df_abt[col].fillna(0)
+    print(f"Berhasil melengkapi Fitur Graf. Total kolom sekarang: {df_abt.shape[1]}")
+elif missing_graph_cols:
+    for col in missing_graph_cols:
+        df_abt[col] = 0
+    print(f"[WARNING] Fitur graf tidak ditemukan di {graph_path}. Mengisi kolom graf kosong dengan 0.")
 else:
-    print(f"[WARNING] Fitur graf tidak ditemukan di {graph_path}. Melewati penggabungan.")
+    print("Fitur graf sudah tersedia di ABT. Melewati penggabungan tambahan.")
 
 print(f"Loaded ABT containing {df_abt.shape[0]} rows and {df_abt.shape[1]} columns.")
 

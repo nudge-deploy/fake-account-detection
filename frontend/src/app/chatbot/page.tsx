@@ -13,33 +13,43 @@ interface ChatMessage {
 }
 
 export default function ChatbotPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'welcome',
-      sender: 'assistant',
-      text: 'Halo! Saya adalah **Fraud AI Assistant**. Saya dapat membantu Anda meneliti dan menganalisis pola kecurangan pada sistem belanja retail. Silakan pilih salah satu pertanyaan cepat di sebelah kiri atau ketik pertanyaan Anda sendiri di kolom bawah.',
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setMessages([
+      {
+        id: 'welcome',
+        sender: 'assistant',
+        text: 'Halo! Saya adalah **Fraud AI Assistant**. Saya dapat membantu Anda meneliti dan menganalisis pola kecurangan pada sistem belanja retail. Silakan pilih salah satu pertanyaan cepat di sebelah kiri atau ketik pertanyaan Anda sendiri di kolom bawah.',
+        timestamp: new Date()
+      }
+    ]);
+  }, []);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestions = [
-    "Why is user U001 suspicious?",
-    "Show top 10 high risk users.",
-    "Which devices are shared by many accounts?",
-    "Which addresses are used by multiple fake accounts?",
-    "How many fake accounts use emulator?",
-    "What is the most common fraud pattern?",
-    "Show fraud cluster related to device DVC001."
+    "Mengapa akun USR00010 dicurigai?",
+    "Tampilkan 10 akun dengan risiko tertinggi.",
+    "Perangkat mana yang paling banyak digunakan bersama?",
+    "Alamat pengiriman mana yang dipakai banyak akun palsu?",
+    "Berapa banyak akun palsu yang terdeteksi?",
+    "Apa pola kecurangan (fraud) yang paling umum terjadi?",
+    "Tampilkan jaringan fraud untuk perangkat DVC001."
   ];
 
   // Auto scroll to bottom of chat
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
@@ -229,7 +239,7 @@ export default function ChatbotPage() {
                     </div>
                   )}
                   <span className="block text-[9px] text-slate-400 text-right mt-1.5 font-mono">
-                    {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {mounted ? msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                   </span>
                 </div>
               </div>

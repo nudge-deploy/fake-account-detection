@@ -8,7 +8,7 @@ Laporan ini merangkum *pipeline* klasifikasi Machine Learning **setelah dilakuka
 
 - **Dataset Utama:** Analytics Base Table (`fake_account_abt.csv`) digabungkan dengan Graph Features (`user_graph_features.csv`).
 - **Total Baris:** 10.000 pengguna.
-- **Total Kolom Fitur:** 69 (Setelah *merge* dan pembuangan target *proxy* seperti `risk_score`).
+- **Total Kolom Fitur:** 64 Fitur Terpilih (Setelah seleksi fitur dan pembuangan label seperti `risk_score`).
 - **Split Configuration:** **70% Training** (7.000 pengguna) dan **30% Testing** (3.000 pengguna), distratifikasi agar seimbang.
 - **Pencegahan Kebocoran (Data Leakage Fix):** Fitur struktural makro (skalar) dan graf jaringan (seperti derajat koneksi dan ukuran komponen) dikalkulasi secara terisolasi hanya pada *split training*.
 
@@ -20,37 +20,39 @@ Performa model diukur pada 3.000 data tes yang benar-benar buta (belum pernah di
 
 | Metric | Logistic Regression | Random Forest | XGBoost / Gradient Boosting ⭐ |
 | :--- | :---: | :---: | :---: |
-| **Accuracy** | 94.07% | 93.57% | **96.50%** |
-| **Precision** | 88.32% | 93.91% | **95.74%** |
-| **Recall** | **92.44%** | 84.00% | **92.44%** |
-| **F1-Score** | 90.34% | 88.68% | **94.06%** |
-| **ROC-AUC** | 0.9822 | 0.9812 | **0.9910** |
+| **Accuracy** | 91.03% | 91.40% | **94.63%** |
+| **Precision** | 82.22% | 95.72% | **96.01%** |
+| **Recall** | **89.44%** | 74.66% | **85.66%** |
+| **F1-Score** | 85.68% | 83.89% | **90.54%** |
+| **ROC-AUC** | 0.9699 | 0.9787 | **0.9898** |
 
-> **Kemenangan XGBoost:** XGBoost terbukti sangat superior dalam menangani data yang berpotensi *imbalanced* dan memiliki banyak fitur pohon (seperti *threshold login_velocity*). Dengan F1-Score 94%, model ini mampu menangkap 92.4% penipu tanpa salah menuduh orang baik secara berlebihan (Presisi 95.7%).
+> **Kemenangan XGBoost:** XGBoost terbukti sangat superior dalam menangani data yang berpotensi *imbalanced* dan memiliki banyak fitur pohon (seperti *threshold login_velocity*). Dengan ROC-AUC nyaris sempurna (99%), XGBoost berhasil mengungguli Random Forest, terutama dalam aspek presisi (kemampuan untuk tidak salah menuduh/blokir pengguna asli) yang menembus angka 96.01%.
 
 ---
 
 ## 3. Analisis Champion Model & Feature Importance
 
-- **Model Terpilih:** **XGBoost** (F1-Score: **0.9406**).
-- **5 Fitur Paling Berpengaruh (Top 5 Predictive Features):**
+- **Model Terpilih:** **XGBoost** (F1-Score: **0.9054**).
+- **Interpretasi Kinerja:** 
+  Dari semua tebakan fraud (Fake Account) oleh XGBoost, 96% di antaranya adalah benar-benar penipu (*Precision sangat tinggi*). Ini menandakan bahwa model sudah siap untuk masuk ke tahap Produksi tanpa menyebabkan banyak komplain (*False Positives*) dari *customer* Alfagift. 
   
-  Model ML kita menyingkap kelemahan utama dari para sindikat penipu (*Fraud Rings*):
+- **Top Predictive Features:**
+  Berdasarkan proses pelatihan model terakhir (setelah perbaikan *Data Leakage*), terjadi pergeseran metrik yang paling memengaruhi keputusan AI. Model kini tidak lagi bergantung pada kecepatan *login*, melainkan berfokus penuh pada **Jejak Relasi Sindikat (Graph Network)**. Berikut adalah Top 5 Fitur Utama:
 
-  1. 🥇 **`login_f24h` (Pentingnya: 30.31%)**
-     Fitur kecepatan (*velocity*) yang merekam puncak *login* berturut-turut dalam 24 jam. Ini adalah indikator terbaik untuk membongkar **Persona Bot / Skrip Otomatis** yang mencoba membobol atau mengeksploitasi sistem dalam waktu singkat.
+  1. 🥇 **`shared_ip_count` (Pentingnya: 41.02%)**
+     Fitur *Bipartite Graph* yang menghitung jumlah irisan alamat IP. Terbukti, penipu bersindikasi akan selalu tertangkap jaring karena mereka "memaksa" menggunakan alamat IP yang sama secara masif.
      
-  2. 🥈 **`shared_ip_count` (Pentingnya: 15.61%)**
-     Fitur *Bipartite Graph* yang menghitung jumlah irisan alamat IP. Terbukti, penipu bersindikasi akan selalu tertangkap di jaring koneksi IP mereka.
+  2. 🥈 **`max_acc_ip` (Pentingnya: 14.31%)**
+     Kepadatan absolut dari sebuah *IP Address* (berapa banyak akun yang masuk dari 1 titik IP internet).
      
-  3. 🥉 **`avg_amt1m` (Pentingnya: 12.28%)**
-     Rata-rata nominal transaksi dalam 1 bulan terakhir. Penipu umumnya melakukan transaksi dengan nilai (Rupiah) yang dipaskan serendah mungkin untuk sekadar mengklaim *voucher*.
+  3. 🥉 **`comp_size` (Pentingnya: 8.16%)**
+     Ukuran *Connected Component* dari graf jaringan. Makin besar kumpulannya, makin yakin AI bahwa ini adalah *Fraud Ring*.
      
-  4. 🏅 **`max_acc_ip` (Pentingnya: 11.50%)**
-     Fitur kepadatan absolut dari sebuah *IP Address*. 
+  4. 🏅 **`shared_payment_count` (Pentingnya: 4.65%)**
+     Penggunaan instrumen pembayaran yang sama secara berulang oleh berbagai akun.
      
-  5. 🏅 **`login_f18h` (Pentingnya: 5.52%)**
-     Fitur kecepatan *login* pendamping dengan jendela waktu yang sedikit lebih rapat.
+  5. 🏅 **`reg2txn_min` (Pentingnya: 4.48%)**
+     Waktu (dalam menit) dari mendaftar hingga melakukan transaksi pertama. Penipu umumnya bergerak instan layaknya robot.
 
 ![Feature Importance](file:///d:/magang/fraud%20detection/docs/images/feature_importance.png)
 
@@ -58,4 +60,4 @@ Performa model diukur pada 3.000 data tes yang benar-benar buta (belum pernah di
 
 ## 4. Kesimpulan Akhir
 
-Dengan perpaduan simulasi *Persona Jam Login* dari Simulator dan Ekstraksi Bipartit dari Modul Graph, kecerdasan buatan (*AI*) kita akhirnya memiliki "mata" untuk mengenali ciri khas robot dan sindikasi. Skor **ROC-AUC 99.1%** menandakan bahwa model kita sudah mencapai tingkatan akurasi tingkat industri (Level Produksi) dan siap diintegrasikan ke sistem perbankan / aplikasi *e-commerce* (*Alfagift*) sungguhan.
+Dengan perpaduan simulasi *Persona Jam Login* dari Simulator dan Ekstraksi Bipartit dari Modul Graph, kecerdasan buatan (*AI*) kita akhirnya memiliki "mata" untuk mengenali ciri khas robot dan sindikasi. Skor **ROC-AUC 98.98%** menandakan bahwa model kita sudah mencapai tingkatan akurasi tingkat industri (Level Produksi) dan telah siap untuk dipadukan (Hybrid) dengan Rule-Based Engine di Backend FastAPI.

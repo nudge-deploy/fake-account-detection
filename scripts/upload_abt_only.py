@@ -1,3 +1,10 @@
+"""Purpose: Upload only the final ABT CSV into Supabase.
+Used by: Manual reloads when raw relational tables are already loaded.
+Depends on: .env SUPABASE_URL/SUPABASE_KEY, pandas, supabase client.
+Public functions: None; script entry point executes upload.
+Side effects: Upserts rows into fake_account_abt over HTTP.
+"""
+
 import os
 import sys
 import pandas as pd

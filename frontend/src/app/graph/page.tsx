@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * Purpose: Render interactive fraud graph analytics and node detail panel.
+ * Used by: /graph route in the Next.js app.
+ * Depends on: backend graph/user APIs, react-force-graph-2d, Next navigation.
+ * Public functions: GraphAnalyticsPage default export.
+ * Side effects: Fetches graph and user details from the backend API.
+ */
+
 import { useEffect, useState, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getGraphData, getUserDetails, GraphData, UserDetails } from '@/lib/api';
@@ -94,7 +102,7 @@ function GraphContent() {
       usersToKeep = new Set(
         Array.from(usersToKeep).filter(uid => {
           const node = userNodes.find(n => n.id === uid);
-          const nodeFraudType = (node as any)?.fraud_type || 'normal';
+          const nodeFraudType = node?.ftype || 'normal';
           return nodeFraudType.toLowerCase() === selectedFraudType.toLowerCase();
         })
       );

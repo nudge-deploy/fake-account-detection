@@ -1,4 +1,23 @@
--- Supabase PostgreSQL Schema for Fake Account Detection Prototype
+-- Purpose: Define Supabase PostgreSQL tables for the fraud detection prototype.
+-- Used by: upload scripts and backend Supabase fallback queries.
+-- Main dependencies: Generated raw CSVs, ABT CSV, Supabase PostgreSQL.
+-- Public/main objects: users, devices, graph source tables, fake_account_abt.
+-- Side effects: Drops existing prototype tables, then recreates the current schema.
+
+DROP TABLE IF EXISTS fake_account_abt;
+DROP TABLE IF EXISTS fraud_labels;
+DROP TABLE IF EXISTS referrals;
+DROP TABLE IF EXISTS login_sessions;
+DROP TABLE IF EXISTS transaction_items;
+DROP TABLE IF EXISTS transactions;
+DROP TABLE IF EXISTS vouchers;
+DROP TABLE IF EXISTS user_payments;
+DROP TABLE IF EXISTS payments;
+DROP TABLE IF EXISTS user_addresses;
+DROP TABLE IF EXISTS addresses;
+DROP TABLE IF EXISTS user_devices;
+DROP TABLE IF EXISTS devices;
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
     user_id         VARCHAR PRIMARY KEY,
@@ -23,8 +42,6 @@ CREATE TABLE devices (
     os                  VARCHAR,
     os_version          VARCHAR,
     app_version         VARCHAR,
-    is_emulator         BOOLEAN,
-    is_rooted           BOOLEAN,
     first_seen_date     TIMESTAMP,
     last_seen_date      TIMESTAMP
 );
@@ -45,8 +62,7 @@ CREATE TABLE addresses (
     province                VARCHAR,
     postal_code             VARCHAR,
     latitude                DECIMAL(9,6),
-    longitude               DECIMAL(9,6),
-    address_similarity_group INTEGER   -- cluster ID untuk alamat mirip
+    longitude               DECIMAL(9,6)
 );
 
 CREATE TABLE user_addresses (
@@ -121,10 +137,9 @@ CREATE TABLE login_sessions (
     login_timestamp         TIMESTAMP,
     logout_timestamp        TIMESTAMP,
     session_duration_seconds INTEGER,
-    is_vpn                  BOOLEAN,
-    is_proxy                BOOLEAN,
     geo_city                VARCHAR,
-    geo_province            VARCHAR
+    geo_province            VARCHAR,
+    login_persona           VARCHAR
 );
 
 CREATE TABLE referrals (
@@ -146,6 +161,10 @@ CREATE TABLE fraud_labels (
 
 CREATE TABLE fake_account_abt (
     uid                              VARCHAR PRIMARY KEY,
+    fraud                            BOOLEAN,
+    ftype                            VARCHAR,
+    risk_score                       INTEGER,
+    risk_cat                         VARCHAR,
     email_len                        INTEGER,
     email_num_ratio                  DECIMAL,
     email_rand                       DECIMAL,
@@ -209,11 +228,5 @@ CREATE TABLE fake_account_abt (
     shared_device_count              INTEGER,
     shared_address_count             INTEGER,
     shared_payment_count             INTEGER,
-    shared_ip_count                  INTEGER,
-    risk_score                       INTEGER,
-    risk_cat                         VARCHAR,
-    fraud                            BOOLEAN,
-    ftype                            VARCHAR,
-    ml_prediction                    INTEGER,
-    ml_probability                   DECIMAL
+    shared_ip_count                  INTEGER
 );

@@ -405,9 +405,12 @@ Pelaku menggunakan banyak nomor handphone dan banyak perangkat untuk membuat aku
 
 ## Required Synthetic Data Tables
 
-Berikut tabel synthetic data hasil observasi fitur Alfagift.
+Dari hasil eksplorasi ekstensif di atas, kita membagi rancangan struktur *database* ke dalam dua kategori besar: **Tabel Inti yang Diimplementasikan** dan **Tabel Eksploratif Tambahan**.
 
-### Core User & Identity Tables
+### A. Implemented Core Data Tables (14 Tabel Inti)
+Tabel-tabel di bawah ini adalah fokus utama yang **telah diwujudkan (di-generate)** di dalam *pipeline* proyek deteksi kecurangan ini. Tabel ini cukup merepresentasikan alur utama (*User Journey*) yang digunakan untuk membedakan antara pengguna asli dan sindikat penipu.
+
+#### Core User, Device, & Login Tables
 
 1. **users**
 
@@ -497,7 +500,10 @@ Berikut tabel synthetic data hasil observasi fitur Alfagift.
 
 ---
 
-### Product & Catalog Tables
+### B. Exploratory / Deferred Tables (10 Tabel Ekstra)
+Tabel-tabel berikut ini diidentifikasi selama fase observasi aplikasi, namun **tidak diikutsertakan** dalam simulasi *pipeline* akhir demi menjaga fokus dan efisiensi model (Mencegah *Feature Bloat*).
+
+#### Product & Catalog Tables
 
 9. **products**
 

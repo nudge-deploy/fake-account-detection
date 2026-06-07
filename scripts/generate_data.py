@@ -1,3 +1,10 @@
+"""Purpose: Generate synthetic fraud-detection raw CSV tables.
+Used by: Manual data pipeline before graph/ABT/model scripts.
+Depends on: Faker, pandas, numpy, local data/raw directory.
+Public functions: random_id_phone, session_duration, realistic_address.
+Side effects: Writes raw CSV files under data/raw.
+"""
+
 import os
 import random
 import numpy as np

@@ -1,5 +1,13 @@
 # Fake Account Detection Retail App Prototype
 
+<!--
+Purpose: Project overview and local development workflow.
+Used by: Developers running the data, backend, and frontend pipeline.
+Main dependencies: Python scripts, FastAPI backend, Next.js frontend, Supabase schema.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 ## Objective
 To build a prototype machine learning and rule-based hybrid system capable of detecting fake accounts, voucher abusers, and organized fraud rings in a mobile retail e-commerce ecosystem.
 
@@ -35,20 +43,31 @@ The dataset simulates 10,000 user accounts with features distributed across mult
 - `users.csv`: Core identity (Email, Phone, Registration).
 - `devices.csv`, `addresses.csv`, `payments.csv`: Connected physical and financial entities.
 - `transactions.csv`, `vouchers.csv`: E-commerce purchasing activity.
-- `login_sessions.csv`: Velocity, VPN usage, and network IP activity.
+- `login_sessions.csv`: Login velocity, persona timing, and network IP activity.
 - `referrals.csv`: Referral chains and cyclical rings.
 - `fraud_labels.csv`: Ground truth labels for supervised learning.
 
 ## How to Generate Synthetic Data
-Run the data generation script from the root directory to build the simulated database:
-```bash
-python scripts/generate_data.py
-```
+## Running the Full Pipeline
 
-## How to Build Analytics Base Table
-Compile and aggregate all raw CSV tables into the flat Analytical Base Table (ABT) for ML consumption:
+If you want to regenerate all artifacts from scratch:
+
 ```bash
+# 1. Generate Raw Data
+python scripts/generate_data.py
+
+# 2. Extract Graph Features
+python scripts/build_graph.py
+python scripts/extract_graph_features.py
+
+# 3. Build ABT
 python scripts/build_abt.py
+
+# 4. Generate JSON for API/Frontend
+python scripts/export_graph_api.py
+
+# 5. Train Model
+python scripts/train_model.py
 ```
 
 ## How to Train Model

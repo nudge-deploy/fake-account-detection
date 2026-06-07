@@ -1,3 +1,10 @@
+"""Purpose: Build the final Analytics Base Table for fraud model training/API use.
+Used by: train_model.py, upload scripts, backend ModelService.
+Depends on: raw CSVs, optional processed/user_graph_features.csv, pandas, networkx.
+Public functions: calc_entropy, calc_phone_pattern_score, compute_risk_score.
+Side effects: Writes data/abt/fake_account_abt.csv.
+"""
+
 import os
 import sys
 import math
@@ -10,6 +17,7 @@ from collections import Counter
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 RAW_DIR = os.path.join(BASE_DIR, 'data', 'raw')
 ABT_DIR = os.path.join(BASE_DIR, 'data', 'abt')
+PROCESSED_DIR = os.path.join(BASE_DIR, 'data', 'processed')
 os.makedirs(ABT_DIR, exist_ok=True)
 
 print("Memulai Feature Engineering & Pembuatan ABT...")
@@ -409,6 +417,31 @@ df_abt['risk_category'] = df_abt['risk_score_rule_based'].apply(categorize_risk)
 # Gabungkan kembali dengan label asli dari fraud_labels untuk keperluan evaluasi/training model
 df_abt = df_abt.merge(df_fraud_labels[['user_id', 'is_fake_account', 'fraud_type']], on='user_id', how='left')
 
+# Gabungkan fitur graf jika sudah diekstrak. Jika belum ada, tetap buat kolom nol
+# supaya kontrak ABT konsisten dengan feature_columns.json dan schema database.
+graph_feature_map = {
+    'graph_degree': 'degree',
+    'connected_component_size': 'comp_size',
+    'graph_cluster_size': 'cluster',
+    'shared_entity_count': 'shared_ent',
+    'shared_device_count': 'shared_device_count',
+    'shared_address_count': 'shared_address_count',
+    'shared_payment_count': 'shared_payment_count',
+    'shared_ip_count': 'shared_ip_count',
+}
+graph_features_path = os.path.join(PROCESSED_DIR, 'user_graph_features.csv')
+if os.path.exists(graph_features_path):
+    df_graph_features = pd.read_csv(graph_features_path).rename(columns=graph_feature_map)
+    df_abt = df_abt.merge(df_graph_features, on='user_id', how='left')
+    print(f"Berhasil menggabungkan fitur graf dari {graph_features_path}.")
+else:
+    print(f"Fitur graf tidak ditemukan di {graph_features_path}; mengisi kolom graf dengan 0.")
+
+for col in graph_feature_map.values():
+    if col not in df_abt.columns:
+        df_abt[col] = 0
+    df_abt[col] = df_abt[col].fillna(0).astype(int)
+
 # Menyaring seluruh fitur hasil ekstraksi (Hapus kolom tanggal mentah)
 columns_to_keep = [
     # Meta & Labels
@@ -440,7 +473,12 @@ columns_to_keep = [
     'login_frequency_12h', 'login_frequency_18h', 'login_frequency_24h',
 
     # Referral
-    'referral_count', 'referral_ring_score'
+    'referral_count', 'referral_ring_score',
+
+    # Graph
+    'degree', 'comp_size', 'cluster', 'shared_ent',
+    'shared_device_count', 'shared_address_count',
+    'shared_payment_count', 'shared_ip_count'
 ]
 # Pastikan tipe data hitungan & rupiah adalah integer agar tidak jadi .0 (menghindari bug baca Excel)
 int_cols = [
@@ -451,6 +489,9 @@ int_cols = [
     'total_transactions_last_4m', 'total_order_amount_last_4m', 'avg_order_amount_last_4m', 'total_promo_discount_last_4m', 'voucher_usage_count_last_4m',
     'total_transactions_last_5m', 'total_order_amount_last_5m', 'avg_order_amount_last_5m', 'total_promo_discount_last_5m', 'voucher_usage_count_last_5m',
     'total_transactions_last_6m', 'total_order_amount_last_6m', 'avg_order_amount_last_6m', 'total_promo_discount_last_6m', 'voucher_usage_count_last_6m',
+    'degree', 'comp_size', 'cluster', 'shared_ent',
+    'shared_device_count', 'shared_address_count',
+    'shared_payment_count', 'shared_ip_count'
 ]
 for col in int_cols:
     if col in df_abt.columns:

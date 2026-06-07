@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
     app.state.graph_service = graph_service
     
     print("Initializing Chatbot Service...")
-    chatbot_service = ChatbotService(model_service)
+    chatbot_service = ChatbotService(model_service, graph_service)
     app.state.chatbot_service = chatbot_service
     
     print("All services successfully initialized!")

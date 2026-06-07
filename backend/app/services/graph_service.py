@@ -1,3 +1,10 @@
+"""Purpose: Load and filter graph artifacts for API graph responses.
+Used by: graph API router, prediction API user detail enrichment, chatbot service.
+Depends on: graph_nodes.json, graph_edges.csv/json, fraud_labels.csv, response schemas.
+Public functions: GraphService.load_graph_data, build_adjacency, get_graph_data.
+Side effects: Reads graph/data files into memory at service startup.
+"""
+
 import os
 import json
 from typing import Dict, Any, List, Optional
@@ -28,8 +35,16 @@ class GraphService:
         # 2. Load Edges
         if os.path.exists(GRAPH_EDGES_PATH):
             try:
+                import csv
+                self.raw_edges = []
                 with open(GRAPH_EDGES_PATH, 'r', encoding='utf-8') as f:
-                    self.raw_edges = json.load(f)
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        self.raw_edges.append({
+                            'source': row.get('source'),
+                            'target': row.get('target'),
+                            'relationship': row.get('edge_type')
+                        })
                 print(f"Successfully loaded {len(self.raw_edges)} graph edges.")
             except Exception as e:
                 print(f"Error loading graph edges from {GRAPH_EDGES_PATH}: {e}")
@@ -177,14 +192,15 @@ class GraphService:
         for node_id in active_node_ids:
             node = self.nodes_dict.get(node_id)
             if node:
+                node_type = node.get('type', 'user' if str(node_id).startswith('USR') else 'entity')
                 filtered_nodes.append(
                     GraphNode(
                         id=node['id'],
-                        label=node['label'],
-                        type=node['type'],
+                        label=node.get('label', node['id']),
+                        type=node_type,
                         risk_score=node.get('risk_score'),
                         risk_category=node.get('risk_category'),
-                        fraud_type=self.user_fraud_types.get(node_id) if node['type'] == 'user' else None
+                        ftype=node.get('ftype') or (self.user_fraud_types.get(node_id) if node_type == 'user' else None)
                     )
                 )
 

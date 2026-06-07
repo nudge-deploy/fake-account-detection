@@ -1,3 +1,9 @@
+# Purpose: List Python packages required by the backend and data pipeline.
+# Used by: venv setup, backend server, and data/model scripts.
+# Depends on: pip-compatible Python environment.
+# Public/main entries: fastapi, pandas, scikit-learn, faker, supabase.
+# Side effects: Installing these packages changes the active Python environment.
+
 fastapi
 uvicorn
 pydantic
@@ -7,3 +13,7 @@ joblib
 networkx
 python-dotenv
 groq
+supabase
+matplotlib 
+seaborn 
+faker

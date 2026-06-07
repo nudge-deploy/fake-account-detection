@@ -1,7 +1,15 @@
+"""Purpose: Provide rule-based and optional Groq-backed fraud assistant replies.
+Used by: chatbot API router.
+Depends on: ModelService, GraphService, optional Groq API client.
+Public functions: ChatbotService.process_message and fallback handlers.
+Side effects: Optional HTTP call to Groq when GROQ_API_KEY is configured.
+"""
+
 import re
 import os
 from typing import Dict, Any, List, Optional
 from app.services.model_service import ModelService
+from app.services.graph_service import GraphService
 from app.schemas.request_response import ChatResponse
 
 # Try importing groq SDK
@@ -12,30 +20,15 @@ except ImportError:
     GROQ_AVAILABLE = False
 
 class ChatbotService:
-    def __init__(self, model_service: ModelService):
+    def __init__(self, model_service: ModelService, graph_service: GraphService):
         self.model_service = model_service
+        self.graph_service = graph_service
 
     def get_graph_edges(self) -> List[Dict[str, Any]]:
-        from app.utils.config import GRAPH_EDGES_PATH
-        import json
-        if os.path.exists(GRAPH_EDGES_PATH):
-            try:
-                with open(GRAPH_EDGES_PATH, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except Exception as e:
-                print(f"Error loading graph edges in chatbot: {e}")
-        return []
+        return self.graph_service.raw_edges
 
     def get_graph_nodes(self) -> List[Dict[str, Any]]:
-        from app.utils.config import GRAPH_NODES_PATH
-        import json
-        if os.path.exists(GRAPH_NODES_PATH):
-            try:
-                with open(GRAPH_NODES_PATH, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except Exception as e:
-                print(f"Error loading graph nodes in chatbot: {e}")
-        return []
+        return self.graph_service.raw_nodes
 
     def process_message(self, message: str) -> ChatResponse:
         msg = message.strip().lower()
@@ -396,7 +389,8 @@ class ChatbotService:
     def _handle_stats_query(self) -> ChatResponse:
         df = self.model_service.df_merged
         total_users = len(df)
-        categories = df['risk_category'].value_counts().to_dict()
+        risk_col = 'risk_cat' if 'risk_cat' in df.columns else 'risk_category'
+        categories = df[risk_col].value_counts().to_dict()
         high_count = categories.get('High', 0)
         med_count = categories.get('Medium', 0)
         low_count = categories.get('Low', 0)
@@ -446,8 +440,8 @@ class ChatbotService:
             "satu perangkat fisik yang sama. Pola ini menandakan pendaftaran massal menggunakan emulator "
             "atau bot.\n\n"
             "**Fitur Deteksi Utama:**\n"
-            "- `accounts_per_device_max` (jumlah akun per perangkat)\n"
-            "- `is_emulator_used` (deteksi penggunaan emulator)"
+            "- `max_acc_dev` (jumlah akun maksimum yang berbagi perangkat)\n"
+            "- `shared_device_count` (jumlah koneksi berbagi perangkat di graph)"
         )
 
     def _handle_shared_address_concept(self) -> str:
@@ -457,8 +451,8 @@ class ChatbotService:
             "satu alamat pengiriman yang sama atau sangat mirip (shared address ring). Ini biasanya "
             "digunakan untuk menyedot promo/voucher pengguna baru ke satu penimbun.\n\n"
             "**Fitur Deteksi Utama:**\n"
-            "- `accounts_per_address_max` (jumlah akun per kelompok alamat)\n"
-            "- `address_reuse_flag` (apakah alamat digunakan bersama)"
+            "- `max_acc_addr` (jumlah akun maksimum yang berbagi alamat)\n"
+            "- `shared_address_count` (jumlah koneksi berbagi alamat di graph)"
         )
 
     def _handle_shared_payment_concept(self) -> str:
@@ -468,8 +462,8 @@ class ChatbotService:
             "yang sama untuk bertransaksi. Ini merupakan indikator kuat adanya satu pelaku yang mengendalikan "
             "banyak akun palsu (Sybil attack) untuk memanfaatkan promo cashback.\n\n"
             "**Fitur Deteksi Utama:**\n"
-            "- `accounts_per_payment_max` (jumlah akun per alat pembayaran)\n"
-            "- `payment_reuse_flag` (apakah instrumen pembayaran digunakan kembali)"
+            "- `max_acc_pay` (jumlah akun maksimum yang berbagi metode pembayaran)\n"
+            "- `shared_payment_count` (jumlah koneksi berbagi pembayaran di graph)"
         )
 
     def _handle_referral_ring_concept(self) -> str:

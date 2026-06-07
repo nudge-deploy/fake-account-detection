@@ -1,3 +1,10 @@
+"""Purpose: Define request/response contracts for the FastAPI backend.
+Used by: API routers, service return values, OpenAPI schema generation.
+Depends on: pydantic BaseModel/Field.
+Public functions: PredictionRequest/Response, UserDetailResponse, GraphDataResponse, ChatResponse.
+Side effects: None.
+"""
+
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 

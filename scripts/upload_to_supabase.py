@@ -1,107 +1,109 @@
+"""Purpose: Upload generated CSV tables into an empty Supabase project.
+Used by: Manual data loading after running database_schema.sql.
+Depends on: .env SUPABASE_URL/SUPABASE_KEY, pandas, supabase client, generated CSVs.
+Public functions: main, upload_csv_table, normalize_dataframe, normalize_value.
+Side effects: Upserts rows into Supabase tables over HTTP.
+"""
+
 import os
-import json
-import joblib
+import sys
+import math
+from typing import Iterable
+
 import pandas as pd
 from dotenv import load_dotenv
-from supabase import create_client, Client
-import math
+from supabase import Client, create_client
 
-def main():
-    print("Loading environment variables...")
-    load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
-    
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_KEY")
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RAW_DIR = os.path.join(BASE_DIR, "data", "raw")
+ABT_DIR = os.path.join(BASE_DIR, "data", "abt")
+BATCH_SIZE = 500
+
+TABLE_LOAD_ORDER = [
+    ("users", os.path.join(RAW_DIR, "users.csv")),
+    ("devices", os.path.join(RAW_DIR, "devices.csv")),
+    ("addresses", os.path.join(RAW_DIR, "addresses.csv")),
+    ("payments", os.path.join(RAW_DIR, "payments.csv")),
+    ("vouchers", os.path.join(RAW_DIR, "vouchers.csv")),
+    ("user_devices", os.path.join(RAW_DIR, "user_devices.csv")),
+    ("user_addresses", os.path.join(RAW_DIR, "user_addresses.csv")),
+    ("user_payments", os.path.join(RAW_DIR, "user_payments.csv")),
+    ("transactions", os.path.join(RAW_DIR, "transactions.csv")),
+    ("transaction_items", os.path.join(RAW_DIR, "transaction_items.csv")),
+    ("login_sessions", os.path.join(RAW_DIR, "login_sessions.csv")),
+    ("referrals", os.path.join(RAW_DIR, "referrals.csv")),
+    ("fraud_labels", os.path.join(RAW_DIR, "fraud_labels.csv")),
+    ("fake_account_abt", os.path.join(ABT_DIR, "fake_account_abt.csv")),
+]
+
+BOOLEAN_COLUMNS = {
+    "users": ["is_email_verified", "is_phone_verified"],
+    "user_addresses": ["is_default_address"],
+    "user_payments": ["is_default_payment"],
+    "referrals": ["reward_claimed"],
+    "fraud_labels": ["is_fake_account"],
+    "fake_account_abt": ["fraud", "disp_email"],
+}
+
+
+def chunked(records: list[dict], size: int) -> Iterable[list[dict]]:
+    for idx in range(0, len(records), size):
+        yield records[idx : idx + size]
+
+
+def normalize_dataframe(table_name: str, df: pd.DataFrame) -> pd.DataFrame:
+    df = df.astype(object).where(pd.notna(df), None)
+
+    for column in BOOLEAN_COLUMNS.get(table_name, []):
+        if column in df.columns:
+            df[column] = df[column].map(lambda value: None if value is None else bool(value))
+
+    return df
+
+
+def normalize_value(value):
+    if value is None:
+        return None
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if pd.isna(value):
+        return None
+    return value
+
+
+def upload_csv_table(supabase: Client, table_name: str, csv_path: str) -> None:
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(f"CSV file not found for {table_name}: {csv_path}")
+
+    df = normalize_dataframe(table_name, pd.read_csv(csv_path))
+    records = [
+        {key: normalize_value(value) for key, value in record.items()}
+        for record in df.to_dict(orient="records")
+    ]
+
+    print(f"Uploading {len(records)} rows into {table_name}...")
+    for idx, batch in enumerate(chunked(records, BATCH_SIZE), start=1):
+        supabase.table(table_name).upsert(batch).execute()
+        print(f"  {table_name}: batch {idx} ({len(batch)} rows)")
+
+
+def main() -> None:
+    load_dotenv(os.path.join(BASE_DIR, ".env"))
+
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_KEY")
     if not url or not key:
-        print("Error: SUPABASE_URL and SUPABASE_KEY must be set in .env")
-        return
-        
-    print("Initializing Supabase client...")
-    supabase: Client = create_client(url, key)
-    
-    # Paths
-    BASE_DIR = os.path.join(os.path.dirname(__file__), '..')
-    USERS_PATH = os.path.join(BASE_DIR, 'data', 'raw', 'users.csv')
-    ABT_PATH = os.path.join(BASE_DIR, 'data', 'abt', 'fake_account_abt.csv')
-    GRAPH_PATH = os.path.join(BASE_DIR, 'data', 'processed', 'user_graph_features.csv')
-    MODEL_PATH = os.path.join(BASE_DIR, 'models', 'fake_account_model.pkl')
-    FEAT_COLS_PATH = os.path.join(BASE_DIR, 'models', 'feature_columns.json')
-    
-    print("Loading Data...")
-    df_users = pd.read_csv(USERS_PATH)
-    df_abt = pd.read_csv(ABT_PATH)
-    
-    if os.path.exists(GRAPH_PATH):
-        df_graph = pd.read_csv(GRAPH_PATH)
-        df_graph = df_graph.rename(columns={
-            'user_id': 'uid',
-            'graph_degree': 'degree',
-            'graph_cluster_size': 'cluster',
-            'connected_component_size': 'comp_size',
-            'shared_entity_count': 'shared_ent'
-        })
-        if 'degree' not in df_abt.columns:
-            df_abt = df_abt.merge(df_graph, on='uid', how='left')
-    
-    df_abt = df_abt.fillna(0)
-    
-    # Load ML Model
-    print("Running ML Predictions...")
-    model = joblib.load(MODEL_PATH)
-    with open(FEAT_COLS_PATH, 'r') as f:
-        feature_cols = json.load(f)
-        
-    for col in feature_cols:
-        if col not in df_abt.columns:
-            df_abt[col] = 0
-            
-    X = df_abt[feature_cols]
-    df_abt['ml_probability'] = model.predict_proba(X)[:, 1]
-    df_abt['ml_prediction'] = model.predict(X)
-    
-    print("Uploading users to Supabase in batches...")
-    df_users = df_users.fillna("") # Replace NaN with empty string for JSON serialization
-    users_records = df_users.to_dict(orient='records')
-    
-    batch_size = 1000
-    for i in range(0, len(users_records), batch_size):
-        batch = users_records[i:i+batch_size]
-        # Clean boolean columns
-        for row in batch:
-            row['is_email_verified'] = bool(row['is_email_verified'])
-            row['is_phone_verified'] = bool(row['is_phone_verified'])
-        
-        try:
-            supabase.table('users').upsert(batch).execute()
-            print(f"  Uploaded users {i} to {i+len(batch)}")
-        except Exception as e:
-            print(f"Error uploading users batch: {e}")
-            
-    print("Uploading ABT to Supabase in batches...")
-    # Convert numpy types to native python types for JSON
-    for col in df_abt.columns:
-        if df_abt[col].dtype in ['int64', 'int32']:
-            df_abt[col] = df_abt[col].astype(int)
-        elif df_abt[col].dtype in ['float64', 'float32']:
-            df_abt[col] = df_abt[col].astype(float)
-            
-    df_abt = df_abt.fillna("")
-    abt_records = df_abt.to_dict(orient='records')
-    
-    for i in range(0, len(abt_records), batch_size):
-        batch = abt_records[i:i+batch_size]
-        # Clean types
-        for row in batch:
-            row['disp_email'] = bool(row['disp_email'])
-            row['fraud'] = bool(row['fraud'])
-            
-        try:
-            supabase.table('fake_account_abt').upsert(batch).execute()
-            print(f"  Uploaded ABT {i} to {i+len(batch)}")
-        except Exception as e:
-            print(f"Error uploading ABT batch: {e}")
-            
-    print("Migration to Supabase completed successfully!")
+        print("[ERROR] SUPABASE_URL and SUPABASE_KEY must be set in .env")
+        sys.exit(1)
+
+    supabase = create_client(url, key)
+
+    for table_name, csv_path in TABLE_LOAD_ORDER:
+        upload_csv_table(supabase, table_name, csv_path)
+
+    print("Supabase upload completed successfully.")
+
 
 if __name__ == "__main__":
     main()

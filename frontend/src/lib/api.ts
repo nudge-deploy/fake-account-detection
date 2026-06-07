@@ -1,3 +1,11 @@
+/**
+ * Purpose: Central typed client for backend Fraud Detection API calls.
+ * Used by: Next.js app pages and visualizations.
+ * Depends on: axios and NEXT_PUBLIC_API_URL.
+ * Public functions: getOverviewStats, listUsers, getUserDetails, getGraphData, predictRaw, chatWithAgent.
+ * Side effects: Performs HTTP requests to the backend API.
+ */
+
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -69,6 +77,7 @@ export interface GraphNode {
   type: string;
   risk_score?: number;
   risk_category?: string;
+  ftype?: string | null;
 }
 
 export interface GraphEdge {

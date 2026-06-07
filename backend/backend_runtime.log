@@ -1,0 +1,24 @@
+Config loaded:
+  MODEL_PATH: D:\magang\fraud detection\models\fake_account_model.pkl
+  FEATURE_COLUMNS_PATH: D:\magang\fraud detection\models\feature_columns.json
+  GRAPH_NODES_PATH: D:\magang\fraud detection\data\processed\graph_nodes.json
+  GRAPH_EDGES_PATH: D:\magang\fraud detection\data\processed\graph_edges.csv
+  ABT_PATH: D:\magang\fraud detection\data\abt\fake_account_abt.csv
+  USERS_CSV_PATH: D:\magang\fraud detection\data\raw\users.csv
+Starting up FastAPI application...
+Initializing Model Service...
+Successfully initialized Supabase client.
+Successfully loaded model from D:\magang\fraud detection\models\fake_account_model.pkl
+Successfully loaded feature columns (64 columns)
+Batch predicting ML probabilities for df_merged...
+Successfully loaded 10000 rows into df_merged
+Initializing Graph Service...
+Successfully loaded 33906 graph nodes.
+Successfully loaded 127514 graph edges.
+Initializing Chatbot Service...
+All services successfully initialized!
+INFO:     127.0.0.1:53978 - "GET /api/graph?max_nodes=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53979 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53980 - "GET /api/stats/overview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54083 - "GET /api/users?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54084 - "GET /api/user/USR00001 HTTP/1.1" 200 OK
