@@ -86,17 +86,54 @@ Sebelum data dihitung secara tradisional, kita mengekstrak pola "tak kasat mata"
 Ini adalah "Pabrik Perakitan" sesungguhnya. Skrip ini membaca *semua* file dari `data/raw/` dan menyatukannya dengan `user_graph_features.csv` untuk dirajut menjadi satu garis lurus (*flattened*). 
 
 ### 🗂️ Relasi Penggabungan Tabel (Table Join Relations)
-Untuk merakit ABT, skrip akan melakukan penggabungan (*join/merge*) dengan `users` sebagai pusat tata surya (titik jangkar). Berikut adalah tabel relasi dari tabel-tabel mentah yang digabungkan:
+Untuk merakit ABT, skrip akan melakukan penggabungan (*join/merge*) dengan `users` sebagai pusat tata surya (titik jangkar). Berikut adalah diagram relasi (*Entity Relationship*) dari tabel-tabel mentah yang digabungkan:
 
-| Tabel Sumber (*Left*) | Tabel Target (*Right*) | Jenis Relasi | Kunci Penggabungan (*Join Key*) | Tujuan Utama |
-| :--- | :--- | :--- | :--- | :--- |
-| **`users`** | `user_devices` | 1:N | `user_id` | Agregasi Device (contoh: `max_acc_dev`) |
-| **`users`** | `user_addresses` | 1:N | `user_id` | Agregasi Address (contoh: `max_acc_addr`) |
-| **`users`** | `user_payments` | 1:N | `user_id` | Agregasi Payment (contoh: `max_acc_pay`) |
-| **`users`** | `transactions` | 1:N | `user_id` | Riwayat belanja, batas waktu (`reg2txn_min`), rasio promo |
-| **`users`** | `login_sessions` | 1:N | `user_id` | Hitung kecepatan login (*Velocity Login*) & kepadatan IP |
-| **`users`** | `referrals` | 1:N | `user_id` | Mencari anomali lingkaran berantai (*Referral Ring Abuse*) |
-| **`users`** | `user_graph_features`| 1:1 | `user_id` | Memasukkan skor relasi jaringan sindikat (*Macro Graph Score*) |
+```mermaid
+erDiagram
+    users {
+        string user_id PK
+        date registration_date
+    }
+    user_devices {
+        string user_id FK
+        string device_id FK
+    }
+    user_addresses {
+        string user_id FK
+        string address_id FK
+    }
+    user_payments {
+        string user_id FK
+        string payment_id FK
+    }
+    transactions {
+        string transaction_id PK
+        string user_id FK
+        string voucher_id FK
+    }
+    login_sessions {
+        string session_id PK
+        string user_id FK
+        string ip_address
+    }
+    referrals {
+        string referrer_user_id FK
+        string referred_user_id FK
+    }
+    user_graph_features {
+        string user_id FK
+        int graph_degree
+        int comp_size
+    }
+
+    users ||--o{ user_devices : "di-join untuk Agregasi Device"
+    users ||--o{ user_addresses : "di-join untuk Agregasi Address"
+    users ||--o{ user_payments : "di-join untuk Agregasi Payment"
+    users ||--o{ transactions : "di-join untuk Riwayat Belanja"
+    users ||--o{ login_sessions : "di-join untuk Velocity Login"
+    users ||--o{ referrals : "di-join untuk Referral Ring"
+    users ||--|| user_graph_features : "di-join (1:1) untuk Macro Graph"
+```
 
 Berikut adalah **Silsilah Detail (Lineage Mapping)** dari mana setiap kolom di ABT diciptakan berdasarkan relasi di atas:
 
