@@ -90,49 +90,99 @@ Untuk merakit ABT, skrip akan melakukan penggabungan (*join/merge*) dengan `user
 
 ```mermaid
 erDiagram
+    %% Core Entity
     users {
         string user_id PK
+        string email
+        string phone_number
         date registration_date
     }
+
+    %% Base Entities
+    devices {
+        string device_id PK
+        string device_type
+        string os_version
+    }
+    addresses {
+        string address_id PK
+        string city
+        string postal_code
+    }
+    payments {
+        string payment_id PK
+        string payment_method
+        string card_bin
+    }
+    vouchers {
+        string voucher_id PK
+        float discount_value
+        string campaign_name
+    }
+
+    %% Junction Tables (Many-to-Many Relationships)
     user_devices {
         string user_id FK
         string device_id FK
+        date link_date
     }
     user_addresses {
         string user_id FK
         string address_id FK
+        date link_date
     }
     user_payments {
         string user_id FK
         string payment_id FK
+        date link_date
     }
+
+    %% Log / Event Tables
     transactions {
         string transaction_id PK
         string user_id FK
         string voucher_id FK
+        float amount
+        date transaction_date
     }
     login_sessions {
         string session_id PK
         string user_id FK
         string ip_address
+        date login_timestamp
     }
+    
+    %% Relationships & Graph Edges
     referrals {
         string referrer_user_id FK
         string referred_user_id FK
+        date referral_date
     }
     user_graph_features {
         string user_id FK
         int graph_degree
         int comp_size
+        int shared_ip_count
     }
 
-    users ||--o{ user_devices : "di-join untuk Agregasi Device"
-    users ||--o{ user_addresses : "di-join untuk Agregasi Address"
-    users ||--o{ user_payments : "di-join untuk Agregasi Payment"
-    users ||--o{ transactions : "di-join untuk Riwayat Belanja"
-    users ||--o{ login_sessions : "di-join untuk Velocity Login"
-    users ||--o{ referrals : "di-join untuk Referral Ring"
-    users ||--|| user_graph_features : "di-join (1:1) untuk Macro Graph"
+    %% Relationships Mapping
+    users ||--o{ user_devices : "has (1:N)"
+    devices ||--o{ user_devices : "used by (1:N)"
+    
+    users ||--o{ user_addresses : "registers (1:N)"
+    addresses ||--o{ user_addresses : "belongs to (1:N)"
+    
+    users ||--o{ user_payments : "adds (1:N)"
+    payments ||--o{ user_payments : "owned by (1:N)"
+    
+    users ||--o{ transactions : "makes (1:N)"
+    vouchers ||--o{ transactions : "applied to (1:N)"
+    
+    users ||--o{ login_sessions : "performs (1:N)"
+    
+    users ||--o{ referrals : "invites (1:N)"
+    
+    users ||--|| user_graph_features : "mapped to (1:1 graph score)"
 ```
 
 Berikut adalah **Silsilah Detail (Lineage Mapping)** dari mana setiap kolom di ABT diciptakan berdasarkan relasi di atas:
