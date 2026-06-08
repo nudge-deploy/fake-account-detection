@@ -26,9 +26,9 @@ export default function Navbar() {
                 <Image 
                   src="/logo.png" 
                   alt="V-TEKI Logo" 
-                  width={150} 
-                  height={40} 
-                  className="h-10 w-auto object-contain dark:brightness-0 dark:invert transition-all"
+                  width={180} 
+                  height={60} 
+                  className="h-12 md:h-14 w-auto object-contain dark:brightness-0 dark:invert transition-all"
                   priority
                 />
               </Link>
