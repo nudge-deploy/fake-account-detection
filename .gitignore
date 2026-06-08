@@ -12,7 +12,4 @@ venv/
 env.bak/
 venv.bak/
 *.pkl
-data/raw/*.csv
-data/abt/*.csv
-data/processed/*
 .DS_Store
