@@ -31,7 +31,7 @@ To build a prototype machine learning and rule-based hybrid system capable of de
 .
 ├── backend/            # FastAPI application and service logic
 ├── data/               # Raw relational CSVs and generated datasets (ABT)
-├── docs/               # Documentation and analytical plots/images
+├── docs/               # Documentation and analytical reports
 ├── frontend/           # Next.js web application dashboard
 ├── models/             # Trained machine learning model artifacts (.pkl, .json)
 ├── notebooks/          # Jupyter notebooks for interactive analysis and EDA
@@ -47,49 +47,35 @@ The dataset simulates 10,000 user accounts with features distributed across mult
 - `referrals.csv`: Referral chains and cyclical rings.
 - `fraud_labels.csv`: Ground truth labels for supervised learning.
 
-## Running the Full Pipeline
-
-If you want to regenerate all artifacts from scratch, keep this order. The ABT is the final training table and contains raw-derived features plus per-user aggregate graph features.
-
+## How to Generate Synthetic Data
+To simulate a realistic retail environment with standard users and automated bot attacks, run the synthetic data generator script. This will populate the `data/raw/` folder with multiple relational tables.
 ```bash
-# 1. Generate Raw Data
 python scripts/generate_data.py
+```
 
-# 2. Generate Graph CSV for feature extraction
+## How to Build Analytics Base Table
+After generating the raw data and graph edge tables, you must extract the necessary network features and build the final Analytical Base Table (ABT) which will be used for model training.
+```bash
 python scripts/build_graph.py
-
-# 3. Extract Graph Features
 python scripts/extract_graph_features.py
-
-# 4. Build final ABT
 python scripts/build_abt.py
-
-# 5. Generate Graph JSON for API/Frontend
 python scripts/export_graph_api.py
-
-# 6. Train Model
-python scripts/train_model.py
-
-# 7. Upload current CSV/ABT data to Supabase
-python scripts/upload_to_supabase.py
 ```
 
 ## How to Train Model
-Train the machine learning models, resolve data leakages, and export the Champion Model:
+Train the machine learning models, resolve data leakages, and export the Champion Model metrics, feature lists, and pickle files:
 ```bash
 python scripts/train_model.py
 ```
 
 ## How to Run API
-Navigate to the backend directory, install requirements, and start the FastAPI server:
+Navigate to the backend directory, install requirements, and start the FastAPI modular server:
 ```bash
 cd backend
-python -m venv venv
-venv\Scripts\activate
 pip install -r requirements.txt
-python -m uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload
 ```
-*Note: Ensure you have python 3.9+ installed.*
+*Note: Ensure you have python 3.9+ installed and a `.env` configured if necessary.*
 
 ## How to Run Frontend
 Navigate to the frontend directory, install dependencies, and start the Next.js development server:
@@ -98,14 +84,15 @@ cd frontend
 npm install
 npm run dev
 ```
-*Note: The frontend will be accessible at `http://localhost:3000`.*
+*Note: The frontend dashboard will be accessible at `http://localhost:3000`.*
 
 ## How to Deploy to Vercel
-1. Push the entire project (or specifically the `frontend/` directory) to a GitHub repository.
+1. Push the entire project to a GitHub repository.
 2. Log in to Vercel and import the repository.
 3. Configure the **Root Directory** to `frontend`.
-4. Add the necessary Environment Variables (e.g., `NEXT_PUBLIC_API_URL` pointing to your deployed backend URL).
-5. Click **Deploy**. Vercel will automatically detect the Next.js framework and build the project.
+4. The **Framework Preset** will automatically detect Next.js.
+5. Add the necessary Environment Variables (e.g., `NEXT_PUBLIC_API_URL` pointing to your deployed Render backend URL).
+6. Click **Deploy**.
 
 ## API Documentation
 When the FastAPI backend is running locally, visit the interactive Swagger UI for full endpoint testing:
@@ -119,10 +106,6 @@ Available REST Endpoints:
 - `GET /api/user/{uid}` : Get detailed risk profile.
 - `GET /api/graph` : Fetch network visualization data.
 - `POST /api/chat` : Chatbot interface.
-
-## Data Lineage Documentation
-For the full relation between source tables, joins, feature outputs, graph outputs, and abbreviation meanings, see:
-- `docs/Feature_Source_Join_Mapping.md`
 
 ## Example Inference
 You can test the manual prediction endpoint using `curl` or Postman:
