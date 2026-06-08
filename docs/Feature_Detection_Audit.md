@@ -83,6 +83,85 @@ Kesimpulan threshold:
 
 ## Audit Sinyal Fitur per Skenario
 
+## Audit 64 Fitur Model
+
+Audit ini memakai 64 fitur di `models/feature_columns.json`. Setiap fitur dicek terhadap tiap skenario fraud dibanding `normal` memakai:
+
+- AUC univariate fitur vs normal.
+- Perbedaan rata-rata fitur fraud scenario vs normal.
+- Kesesuaian makna fitur terhadap skenario fraud.
+
+Hasil ringkas:
+
+| Kategori | Jumlah | Arti |
+|---|---:|---|
+| Direct scenario features | 18 | Fitur yang langsung menjelaskan skenario fraud tertentu. |
+| Supporting/generic fraud features | 9 | Fitur yang membantu model, tetapi tidak spesifik ke satu skenario. |
+| Weak/context features | 37 | Fitur yang lebih lemah secara individual atau hanya jadi konteks model. |
+
+### Direct Scenario Features
+
+Fitur berikut paling benar-benar menjelaskan skenario fraud yang dibuat:
+
+| Fitur | Skenario yang Dianalisis | Alasan |
+|---|---|---|
+| `max_acc_pay` | `shared_payment_abuse` | Banyak account memakai payment yang sama. |
+| `shared_payment_count` | `shared_payment_abuse` | Menghitung shared payment entity. |
+| `max_acc_addr` | `shared_address_abuse` | Banyak account memakai address yang sama. |
+| `shared_address_count` | `shared_address_abuse` | Menghitung shared address entity. |
+| `max_acc_dev` | `shared_device_abuse` | Banyak account memakai device yang sama, tetapi sinyalnya lebih lemah dari payment/address. |
+| `shared_device_count` | `shared_device_abuse` | Menghitung shared device entity, tetapi normal juga cukup sering share device. |
+| `email_num_ratio` | `voucher_farming` | Voucher farming punya email lebih numerik/random. |
+| `disp_email` | `voucher_farming` | Banyak account voucher farming memakai disposable email. |
+| `newuser_voucher` | `voucher_farming` | Pemakaian voucher user baru jauh lebih tinggi. |
+| `promo_ratio` | `voucher_farming` | Rasio transaksi promo lebih tinggi, meski sinyal individual tidak sekuat `newuser_voucher`. |
+| `promo_f4m` | `voucher_farming` | Promo amount window panjang mulai naik. |
+| `promo_f5m` | `voucher_farming` | Promo amount window panjang naik. |
+| `promo_f6m` | `voucher_farming` | Promo amount window panjang paling kuat di kelompok promo amount. |
+| `reg2txn_min` | `voucher_farming` | Pola waktu registrasi ke transaksi pertama berbeda. |
+| `ref_cnt` | `referral_abuse` | Jumlah referral keluar naik. |
+| `ref_ring` | `referral_abuse` | Cycle/ring referral terdeteksi. |
+| `degree` | Fraud ring graph | User terhubung ke lebih banyak user/entity dalam graph projection. |
+| `shared_ent` | Fraud ring graph | Total shared entity connection naik. |
+
+### Supporting / Generic Fraud Features
+
+Fitur berikut membantu model membaca pola fraud umum, terutama graph/login/IP behavior, tetapi tidak selalu menjelaskan satu skenario secara spesifik:
+
+| Fitur | Dipakai Untuk | Catatan |
+|---|---|---|
+| `shared_ip_count` | Network/ring behavior | Sangat dominan di model, tetapi terlalu generic jika dipakai sendirian untuk menjelaskan skenario tertentu. |
+| `max_acc_ip` | Network/IP sharing | Kuat untuk pola IP abnormal, tetapi arah sinyal bisa berbeda antar skenario. |
+| `login_v5h` | Login burst/frequency | Mulai punya sinyal pada skenario graph tertentu. |
+| `login_v6h` | Login burst/frequency | Supporting signal. |
+| `login_v12h` | Login burst/frequency | Supporting signal lebih jelas. |
+| `login_v18h` | Login burst/frequency | Supporting signal kuat. |
+| `login_v24h` | Login daily frequency | Salah satu fitur model paling penting. |
+| `cluster` | Fraud ring graph | Mirip `degree`, membantu membaca ukuran cluster sekitar user. |
+| `comp_size` | Fraud ring graph | Masuk top model importance, tetapi secara univariate kurang spesifik karena component besar hampir menyeluruh. |
+
+### Weak / Context Features
+
+Fitur berikut tetap masuk 64 fitur model, tetapi secara individual tidak kuat untuk membedakan skenario tertentu dari normal pada data saat ini:
+
+```text
+email_len, email_rand, phone_score,
+uniq_dev, uniq_addr, uniq_pay,
+txn_f1m, amt_f1m, avg_amt1m, promo_f1m, voucher_f1m,
+txn_f2m, amt_f2m, avg_amt2m, promo_f2m, voucher_f2m,
+txn_f3m, amt_f3m, avg_amt3m, promo_f3m, voucher_f3m,
+txn_f4m, amt_f4m, avg_amt4m, voucher_f4m,
+txn_f5m, amt_f5m, avg_amt5m, voucher_f5m,
+txn_f6m, amt_f6m, avg_amt6m, voucher_f6m,
+login_v1h, login_v2h, login_v3h, login_v4h
+```
+
+Catatan:
+
+- `login_v1h` termasuk top model importance, tetapi sebagai fitur tunggal tidak cukup spesifik untuk satu skenario. Ia berguna dalam kombinasi dengan IP/graph features.
+- Fitur transaksi bulanan banyak yang menjadi konteks spending behavior, bukan detector utama fraud scenario.
+- Fitur `uniq_*` lebih menjelaskan variasi jumlah entity user sendiri, bukan shared abuse langsung. Detector shared abuse yang lebih kuat adalah `max_acc_*` dan `shared_*_count`.
+
 ### `shared_payment_abuse`
 
 Fitur yang paling jelas:
@@ -196,4 +275,3 @@ Tidak perlu menambah kolom/feature baru untuk saat ini. Perbaikan yang bisa dila
    - login/IP: `login_v1h`, `login_v24h`, `max_acc_ip`, `shared_ip_count`
 4. Evaluasi ulang threshold pada test split atau validation split khusus sebelum dipakai sebagai keputusan final.
 5. Jika ingin meningkatkan `shared_device_abuse` tanpa menambah fitur, perbaiki generator agar normal user tidak terlalu sering berbagi device, lalu regenerate ABT dan retrain.
-
