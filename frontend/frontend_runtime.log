@@ -15,3 +15,20 @@
  GET /graph 200 in 8170ms
  GET /risk 200 in 8299ms
 [?25h
+  ▲ Next.js 14.2.35
+  - Local:        http://127.0.0.1:3000
+  - Network:      http://127.0.0.1:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.8s
+ ○ Compiling /graph ...
+ ✓ Compiled /graph in 10s (3490 modules)
+ GET /graph 200 in 10833ms
+ GET / 200 in 10859ms
+ ✓ Compiled in 2s (1696 modules)
+ ○ Compiling /chatbot ...
+ ✓ Compiled /chatbot in 3.3s (4003 modules)
+ GET /risk 200 in 3922ms
+ GET /chatbot 200 in 3888ms
+[?25h

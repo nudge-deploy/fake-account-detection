@@ -248,9 +248,9 @@ function GraphContent() {
     <div className="flex flex-col lg:flex-row min-h-[calc(100vh-8rem)] gap-6 px-4">
       {/* Control Panel */}
       <div className="w-full lg:w-80 flex-shrink-0 flex flex-col gap-6">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
           <div>
-            <h2 className="text-xl font-bold text-slate-100">Graph Analytics</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Graph Analytics</h2>
             <p className="text-xs text-slate-500 mt-1">Gunakan visualisasi peta hubungan untuk melacak ring fraud.</p>
           </div>
 
@@ -264,12 +264,12 @@ function GraphContent() {
                   value={searchUserId}
                   onChange={(e) => setSearchUserId(e.target.value)}
                   placeholder="Contoh: USR00010"
-                  className="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-slate-900"
+                  className="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-v-blue bg-white dark:bg-slate-900"
                 />
                 {searchUserId && (
                   <button
                     onClick={handleClearSearch}
-                    className="px-2.5 py-1 text-xs border border-slate-300 rounded-lg hover:bg-slate-800/50 text-slate-500 font-semibold"
+                    className="px-2.5 py-1 text-xs border border-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-semibold"
                   >
                     Clear
                   </button>
@@ -283,7 +283,7 @@ function GraphContent() {
               <select
                 value={riskCategoryFilter}
                 onChange={(e) => setRiskCategoryFilter(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-slate-900"
+                className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-v-blue bg-white dark:bg-slate-900"
               >
                 <option value="">Semua (Pusatkan Acak)</option>
                 <option value="High">High Risk Only</option>
@@ -302,20 +302,20 @@ function GraphContent() {
                 step="50"
                 value={maxNodes}
                 onChange={(e) => setMaxNodes(parseInt(e.target.value))}
-                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-v-blue"
               />
             </div>
 
             {/* Frontend Filters */}
-            <div className="pt-2 border-t border-slate-800 space-y-2">
-              <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Saringan Tampilan</span>
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2">
+              <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Saringan Tampilan</span>
               
-              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-400">
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-500 dark:text-slate-400">
                 <input
                   type="checkbox"
                   checked={highRiskOnly}
                   onChange={(e) => setHighRiskOnly(e.target.checked)}
-                  className="rounded border-slate-300 text-red-600 focus:ring-red-500 h-4 w-4"
+                  className="rounded border-slate-300 text-v-blue focus:ring-v-blue h-4 w-4"
                 />
                 <span>Hanya Tampilkan Akun High Risk</span>
               </label>
@@ -325,7 +325,7 @@ function GraphContent() {
                 <select
                   value={selectedFraudType}
                   onChange={(e) => setSelectedFraudType(e.target.value)}
-                  className="w-full px-2 py-1 text-[11px] border border-slate-300 rounded focus:outline-none bg-slate-900 font-medium text-slate-400"
+                  className="w-full px-2 py-1 text-[11px] border border-slate-300 rounded focus:outline-none bg-white dark:bg-slate-900 font-medium text-slate-500 dark:text-slate-400"
                 >
                   <option value="">Semua Tipe (Normal & Fraud)</option>
                   <option value="normal">Normal (Bukan Fraud)</option>
@@ -339,9 +339,9 @@ function GraphContent() {
         </div>
 
         {/* Legend Panel */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
-          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Legenda Entitas</h4>
-          <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-400">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+          <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Legenda Entitas</h4>
+          <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-2">
               <span className="h-3.5 w-3.5 rounded-full bg-red-500 inline-block"></span>
               <span>User (High)</span>
@@ -379,19 +379,19 @@ function GraphContent() {
       </div>
 
       {/* Graph Visualizer Panel */}
-      <div className="flex-1 bg-slate-900 border border-slate-800 rounded-xl shadow-sm relative overflow-hidden flex flex-col min-h-[500px]">
+      <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm relative overflow-hidden flex flex-col min-h-[500px]">
         {loading ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-slate-900/80 z-10">
-            <div className="h-10 w-10 border-4 border-slate-800 border-t-red-600 rounded-full animate-spin"></div>
-            <p className="text-slate-400 text-sm font-semibold animate-pulse">Menghitung hubungan graf...</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-white/80 dark:bg-slate-900/80 z-10">
+            <div className="h-10 w-10 border-4 border-slate-200 dark:border-slate-800 border-t-v-blue rounded-full animate-spin"></div>
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-semibold animate-pulse">Menghitung hubungan graf...</p>
           </div>
         ) : error ? (
           <div className="flex-1 flex items-center justify-center text-red-500">{error}</div>
         ) : (
           <div className="flex-1 relative">
-            <div className="absolute top-4 left-4 bg-slate-900/90 text-white text-xs px-3 py-1.5 rounded-lg z-10 shadow border border-slate-800 pointer-events-none">
+            <div className="absolute top-4 left-4 bg-white/90 dark:bg-slate-900/90 text-white text-xs px-3 py-1.5 rounded-lg z-10 shadow border border-slate-200 dark:border-slate-800 pointer-events-none">
               <p>Node: <strong>{filteredData.nodes.length}</strong> | Hubungan (Edge): <strong>{filteredData.links.length}</strong></p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Tip: Klik node User untuk membuka detail panel</p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Tip: Klik node User untuk membuka detail panel</p>
             </div>
             
             <ForceGraph2D
@@ -427,15 +427,15 @@ function GraphContent() {
 
       {/* Selected Node Details side panel */}
       {selectedNodeId && (
-        <div className="w-full lg:w-96 flex-shrink-0 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm flex flex-col gap-4">
-          <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div className="w-full lg:w-96 flex-shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex flex-col gap-4">
+          <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
             <div>
-              <h3 className="font-bold text-slate-100 text-lg">Informasi Node</h3>
-              <p className="text-xs text-slate-400 font-mono mt-0.5">{selectedNodeId}</p>
+              <h3 className="font-bold text-slate-900 dark:text-white text-lg">Informasi Node</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">{selectedNodeId}</p>
             </div>
             <button
               onClick={() => setSelectedNodeId(null)}
-              className="text-xs font-bold text-slate-400 hover:text-slate-400 bg-slate-800/50 border border-slate-800 px-2 py-1 rounded"
+              className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded"
             >
               Tutup
             </button>
@@ -445,28 +445,28 @@ function GraphContent() {
           {filteredData.nodes.find(n => n.id === selectedNodeId)?.type === 'user' ? (
             detailLoading ? (
               <div className="py-20 flex flex-col items-center justify-center gap-3">
-                <div className="h-8 w-8 border-4 border-slate-800 border-t-red-600 rounded-full animate-spin"></div>
-                <span className="text-slate-400 text-xs font-semibold animate-pulse">Menghubungkan profil...</span>
+                <div className="h-8 w-8 border-4 border-slate-200 dark:border-slate-800 border-t-v-blue rounded-full animate-spin"></div>
+                <span className="text-slate-500 dark:text-slate-400 text-xs font-semibold animate-pulse">Menghubungkan profil...</span>
               </div>
             ) : userDetail ? (
-              <div className="space-y-4 text-xs overflow-y-auto max-h-[calc(100vh-16rem)] pr-1">
+              <div className="space-y-4 text-xs pr-1">
                 {/* Profile Widget */}
-                <div className="bg-slate-800/50 border border-slate-800 rounded-lg p-3">
+                <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-lg p-3">
                   <div className="flex justify-between items-center mb-2.5">
-                    <span className="font-bold text-slate-100 text-sm">{userDetail.full_name || 'N/A'}</span>
+                    <span className="font-bold text-slate-900 dark:text-white text-sm">{userDetail.full_name || 'N/A'}</span>
                     <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${
                       userDetail.risk_category === 'High' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
                     }`}>
                       {userDetail.risk_category} Risk
                     </span>
                   </div>
-                  <p className="text-slate-500">Email: <span className="font-bold text-slate-300">{userDetail.email}</span></p>
-                  <p className="text-slate-500 mt-1">Kota: <span className="font-bold text-slate-300">{userDetail.city}, {userDetail.province}</span></p>
+                  <p className="text-slate-500">Email: <span className="font-bold text-slate-700 dark:text-slate-300">{userDetail.email}</span></p>
+                  <p className="text-slate-500 mt-1">Kota: <span className="font-bold text-slate-700 dark:text-slate-300">{userDetail.city}, {userDetail.province}</span></p>
                 </div>
 
                 {/* Risk Indicators */}
                 <div className="space-y-1">
-                  <span className="block font-bold text-slate-400 uppercase tracking-wider text-[10px]">Indikator Risiko</span>
+                  <span className="block font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">Indikator Risiko</span>
                   {userDetail.reasons && userDetail.reasons.length > 0 ? (
                     userDetail.reasons.map((r, i) => (
                       <div key={i} className="text-red-700 bg-red-50 border border-red-100/50 p-2 rounded text-[11px] leading-relaxed">
@@ -474,54 +474,54 @@ function GraphContent() {
                       </div>
                     ))
                   ) : (
-                    <span className="text-slate-400 italic">Tidak ada pemicu risiko khusus.</span>
+                    <span className="text-slate-500 dark:text-slate-400 italic">Tidak ada pemicu risiko khusus.</span>
                   )}
                 </div>
 
                 {/* Connected network items count list */}
                 <div className="space-y-1.5">
-                  <span className="block font-bold text-slate-400 uppercase tracking-wider text-[10px]">Relasi Peta Jaringan</span>
+                  <span className="block font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">Relasi Peta Jaringan</span>
                   <div className="grid grid-cols-2 gap-2 text-[11px]">
-                    <div className="bg-slate-800/50 border border-slate-800 p-2 rounded">
-                      <p className="text-slate-400">Shared Devices</p>
-                      <p className="font-bold text-slate-100 mt-0.5">{userDetail.connected_devices.length} Perangkat</p>
+                    <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-2 rounded">
+                      <p className="text-slate-500 dark:text-slate-400">Shared Devices</p>
+                      <p className="font-bold text-slate-900 dark:text-white mt-0.5">{userDetail.connected_devices.length} Perangkat</p>
                     </div>
-                    <div className="bg-slate-800/50 border border-slate-800 p-2 rounded">
-                      <p className="text-slate-400">Shared Payments</p>
-                      <p className="font-bold text-slate-100 mt-0.5">{userDetail.connected_payments.length} Alat</p>
+                    <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-2 rounded">
+                      <p className="text-slate-500 dark:text-slate-400">Shared Payments</p>
+                      <p className="font-bold text-slate-900 dark:text-white mt-0.5">{userDetail.connected_payments.length} Alat</p>
                     </div>
-                    <div className="bg-slate-800/50 border border-slate-800 p-2 rounded">
-                      <p className="text-slate-400">Shared Addresses</p>
-                      <p className="font-bold text-slate-100 mt-0.5">{userDetail.connected_addresses.length} Alamat</p>
+                    <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-2 rounded">
+                      <p className="text-slate-500 dark:text-slate-400">Shared Addresses</p>
+                      <p className="font-bold text-slate-900 dark:text-white mt-0.5">{userDetail.connected_addresses.length} Alamat</p>
                     </div>
-                    <div className="bg-slate-800/50 border border-slate-800 p-2 rounded">
-                      <p className="text-slate-400">Shared IPs</p>
-                      <p className="font-bold text-slate-100 mt-0.5">{userDetail.connected_ips.length} IP Address</p>
+                    <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-2 rounded">
+                      <p className="text-slate-500 dark:text-slate-400">Shared IPs</p>
+                      <p className="font-bold text-slate-900 dark:text-white mt-0.5">{userDetail.connected_ips.length} IP Address</p>
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="text-slate-400 text-center py-10">Gagal mengambil informasi profil user.</div>
+              <div className="text-slate-500 dark:text-slate-400 text-center py-10">Gagal mengambil informasi profil user.</div>
             )
           ) : (
             /* Selected Node is NOT a User (device, address, payment, etc.) */
             <div className="text-xs space-y-4">
-              <div className="bg-slate-800/50 border border-slate-800 rounded-lg p-3 text-slate-400">
-                <p className="text-slate-400 uppercase font-bold text-[10px]">Tipe Entitas</p>
-                <p className="text-sm font-bold text-slate-100 mt-0.5 uppercase">
+              <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-slate-500 dark:text-slate-400">
+                <p className="text-slate-500 dark:text-slate-400 uppercase font-bold text-[10px]">Tipe Entitas</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5 uppercase">
                   {filteredData.nodes.find(n => n.id === selectedNodeId)?.type}
                 </p>
                 
-                <p className="text-slate-400 uppercase font-bold text-[10px] mt-4">Hubungan Terhubung</p>
-                <p className="text-slate-300 font-medium mt-0.5">
-                  Entitas ini terhubung dengan **{
+                <p className="text-slate-500 dark:text-slate-400 uppercase font-bold text-[10px] mt-4">Hubungan Terhubung</p>
+                <p className="text-slate-700 dark:text-slate-300 font-medium mt-0.5">
+                  Entitas ini terhubung dengan <span className="font-bold">{
                     filteredData.links.filter(edge => {
                       const srcId = typeof edge.source === 'object' ? (edge.source as any).id : edge.source;
                       const tgtId = typeof edge.target === 'object' ? (edge.target as any).id : edge.target;
                       return srcId === selectedNodeId || tgtId === selectedNodeId;
                     }).length
-                  }** akun atau entitas lainnya dalam graf di layar.
+                  }</span> akun atau entitas lainnya dalam graf di layar.
                 </p>
               </div>
             </div>
@@ -536,7 +536,7 @@ export default function GraphAnalyticsPage() {
   return (
     <Suspense fallback={
       <div className="flex flex-col items-center justify-center min-h-[70vh] gap-4">
-        <div className="h-12 w-12 rounded-full border-4 border-slate-300 border-t-red-600 animate-spin"></div>
+        <div className="h-12 w-12 rounded-full border-4 border-slate-300 border-t-v-blue animate-spin"></div>
         <p className="text-slate-500 font-medium animate-pulse">Memasang modul visualisasi jaringan...</p>
       </div>
     }>

@@ -101,8 +101,8 @@ export default function RiskScoringPage() {
       </div>
 
       {/* Filter Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-        <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">Pencarian & Penyaringan</h3>
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Pencarian & Penyaringan</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Search Box */}
@@ -113,7 +113,7 @@ export default function RiskScoringPage() {
               value={search}
               onChange={(e) => handleFilterChange(() => setSearch(e.target.value))}
               placeholder="Contoh: USR00010 atau rizki..."
-              className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-v-blue focus:border-v-blue"
             />
           </div>
 
@@ -123,7 +123,7 @@ export default function RiskScoringPage() {
             <select
               value={riskCategory}
               onChange={(e) => handleFilterChange(() => setRiskCategory(e.target.value))}
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-slate-900"
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-v-blue focus:border-v-blue bg-white dark:bg-slate-900"
             >
               <option value="">Semua Kategori</option>
               <option value="High">High Risk</option>
@@ -138,7 +138,7 @@ export default function RiskScoringPage() {
             <select
               value={fraudType}
               onChange={(e) => handleFilterChange(() => setFraudType(e.target.value))}
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-slate-900"
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-v-blue focus:border-v-blue bg-white dark:bg-slate-900"
             >
               <option value="">Semua Label</option>
               <option value="normal">Normal (Bukan Fraud)</option>
@@ -158,7 +158,7 @@ export default function RiskScoringPage() {
               value={city}
               onChange={(e) => handleFilterChange(() => setCity(e.target.value))}
               placeholder="Contoh: Jakarta Selatan"
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-v-blue focus:border-v-blue"
             />
           </div>
 
@@ -169,9 +169,9 @@ export default function RiskScoringPage() {
                 type="checkbox"
                 checked={deviceAbuse === true}
                 onChange={(e) => handleFilterChange(() => setDeviceAbuse(e.target.checked ? true : null))}
-                className="rounded border-slate-300 text-red-600 focus:ring-red-500 h-4.5 w-4.5"
+                className="rounded border-slate-300 text-v-blue focus:ring-v-blue h-4.5 w-4.5"
               />
-              <span className="text-xs font-semibold text-slate-400">Penyalahgunaan HP (Emulator/Sharing)</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Penyalahgunaan HP (Emulator/Sharing)</span>
             </label>
           </div>
 
@@ -182,9 +182,9 @@ export default function RiskScoringPage() {
                 type="checkbox"
                 checked={paymentAbuse === true}
                 onChange={(e) => handleFilterChange(() => setPaymentAbuse(e.target.checked ? true : null))}
-                className="rounded border-slate-300 text-red-600 focus:ring-red-500 h-4.5 w-4.5"
+                className="rounded border-slate-300 text-v-blue focus:ring-v-blue h-4.5 w-4.5"
               />
-              <span className="text-xs font-semibold text-slate-400">Sharing Alat Pembayaran</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Sharing Alat Pembayaran</span>
             </label>
           </div>
 
@@ -195,31 +195,31 @@ export default function RiskScoringPage() {
                 type="checkbox"
                 checked={addressAbuse === true}
                 onChange={(e) => handleFilterChange(() => setAddressAbuse(e.target.checked ? true : null))}
-                className="rounded border-slate-300 text-red-600 focus:ring-red-500 h-4.5 w-4.5"
+                className="rounded border-slate-300 text-v-blue focus:ring-v-blue h-4.5 w-4.5"
               />
-              <span className="text-xs font-semibold text-slate-400">Sharing Alamat Pengiriman</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Sharing Alamat Pengiriman</span>
             </label>
           </div>
         </div>
       </div>
 
       {/* Main Table Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center gap-4">
-            <div className="h-10 w-10 border-4 border-slate-800 border-t-red-600 rounded-full animate-spin"></div>
-            <p className="text-slate-400 text-sm font-medium animate-pulse">Menyaring data...</p>
+            <div className="h-10 w-10 border-4 border-slate-200 dark:border-slate-800 border-t-v-blue rounded-full animate-spin"></div>
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium animate-pulse">Menyaring data...</p>
           </div>
         ) : error ? (
           <div className="py-12 text-center text-red-500 font-medium px-4">{error}</div>
         ) : users.length === 0 ? (
-          <div className="py-20 text-center text-slate-400">Tidak ada pengguna yang cocok dengan kriteria filter Anda.</div>
+          <div className="py-20 text-center text-slate-500 dark:text-slate-400">Tidak ada pengguna yang cocok dengan kriteria filter Anda.</div>
         ) : (
           <div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-800 text-sm text-left">
                 <thead>
-                  <tr className="text-slate-400 font-semibold bg-slate-800/50">
+                  <tr className="text-slate-500 dark:text-slate-400 font-semibold bg-slate-50 dark:bg-slate-800/50">
                     <th className="px-6 py-3">User ID</th>
                     <th className="px-6 py-3">Nama Lengkap</th>
                     <th className="px-6 py-3">Kota</th>
@@ -230,18 +230,18 @@ export default function RiskScoringPage() {
                     <th className="px-6 py-3 text-right">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 font-medium text-slate-300">
+                <tbody className="divide-y divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
                   {users.map((user) => (
                     <tr
                       key={user.uid}
-                      className="hover:bg-slate-800/50/70 transition-colors cursor-pointer"
+                      className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
                       onClick={() => setSelectedUserId(user.uid)}
                     >
-                      <td className="px-6 py-4 font-bold text-white">{user.uid}</td>
+                      <td className="px-6 py-4 font-bold text-slate-900 dark:text-white">{user.uid}</td>
                       <td className="px-6 py-4">{user.full_name || 'N/A'}</td>
                       <td className="px-6 py-4 text-slate-500">{user.city || 'N/A'}</td>
                       <td className="px-6 py-4">
-                        <span className="bg-slate-100 px-2 py-0.5 rounded text-xs font-mono font-bold">
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-2 py-0.5 rounded text-xs font-mono font-bold">
                           {user.risk_score_rule_based}/100
                         </span>
                       </td>
@@ -269,7 +269,7 @@ export default function RiskScoringPage() {
                       </td>
                       <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{user.top_reason || '-'}</td>
                       <td className="px-6 py-4 text-right">
-                        <button className="text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100/50 px-2.5 py-1 rounded transition-colors">
+                        <button className="text-xs font-semibold text-v-blue dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100/50 dark:hover:bg-blue-900/40 px-2.5 py-1 rounded transition-colors">
                           Investigasi
                         </button>
                       </td>
@@ -280,21 +280,21 @@ export default function RiskScoringPage() {
             </div>
 
             {/* Pagination UI */}
-            <div className="bg-slate-800/50 px-6 py-4 border-t border-slate-800 flex items-center justify-between text-slate-500 text-xs font-semibold">
-              <span>Menampilkan **{(page - 1) * limit + 1}** - **{Math.min(page * limit, total)}** dari **{total.toLocaleString()}** pengguna</span>
+            <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-slate-500 text-xs font-semibold">
+              <span>Menampilkan <span className="font-bold">{(page - 1) * limit + 1}</span> - <span className="font-bold">{Math.min(page * limit, total)}</span> dari <span className="font-bold">{total.toLocaleString()}</span> pengguna</span>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-3 py-1.5 border border-slate-300 rounded bg-slate-900 hover:bg-slate-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1.5 border border-slate-300 rounded bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-50 dark:bg-slate-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   Sebelumnya
                 </button>
-                <span className="flex items-center px-2 text-slate-300 font-bold">Halaman {page} dari {totalPages || 1}</span>
+                <span className="flex items-center px-2 text-slate-700 dark:text-slate-300 font-bold">Halaman {page} dari {totalPages || 1}</span>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages || totalPages === 0}
-                  className="px-3 py-1.5 border border-slate-300 rounded bg-slate-900 hover:bg-slate-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1.5 border border-slate-300 rounded bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-50 dark:bg-slate-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   Selanjutnya
                 </button>
@@ -310,17 +310,17 @@ export default function RiskScoringPage() {
           <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onClick={() => setSelectedUserId(null)} />
           
           <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-            <div className="pointer-events-auto w-screen max-w-md transform transition-all duration-300 ease-in-out bg-slate-900 shadow-2xl flex flex-col h-full border-l border-slate-800">
+            <div className="pointer-events-auto w-screen max-w-md transform transition-all duration-300 ease-in-out bg-white dark:bg-slate-900 shadow-2xl flex flex-col h-full border-l border-slate-200 dark:border-slate-800">
               
               {/* Drawer Header */}
-              <div className="bg-slate-900 text-white p-6 flex justify-between items-center">
+              <div className="bg-white dark:bg-slate-900 text-white p-6 flex justify-between items-center">
                 <div>
                   <h2 className="text-xl font-bold tracking-tight">Investigasi Akun</h2>
-                  <p className="text-xs text-slate-400 mt-1">Detail kecurigaan dan relasi sistem</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Detail kecurigaan dan relasi sistem</p>
                 </div>
                 <button
                   onClick={() => setSelectedUserId(null)}
-                  className="text-slate-400 hover:text-white rounded bg-slate-800 p-1.5 transition-colors focus:outline-none"
+                  className="text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white rounded bg-slate-100 dark:bg-slate-800 p-1.5 transition-colors focus:outline-none"
                 >
                   ✕
                 </button>
@@ -330,52 +330,52 @@ export default function RiskScoringPage() {
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {detailLoading ? (
                   <div className="h-full flex flex-col items-center justify-center gap-4">
-                    <div className="h-10 w-10 border-4 border-slate-800 border-t-red-600 rounded-full animate-spin"></div>
-                    <p className="text-slate-400 text-xs font-semibold animate-pulse">Menghubungkan data relasi...</p>
+                    <div className="h-10 w-10 border-4 border-slate-200 dark:border-slate-800 border-t-v-blue rounded-full animate-spin"></div>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold animate-pulse">Menghubungkan data relasi...</p>
                   </div>
                 ) : userDetail ? (
                   <div className="space-y-6">
                     {/* User profile */}
-                    <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-800">
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Informasi Profil</h4>
+                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+                      <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Informasi Profil</h4>
                       <div className="grid grid-cols-2 gap-y-3 text-xs">
                         <div>
-                          <p className="text-slate-400">User ID</p>
-                          <p className="font-bold text-slate-100">{userDetail.uid}</p>
+                          <p className="text-slate-500 dark:text-slate-400">User ID</p>
+                          <p className="font-bold text-slate-900 dark:text-white">{userDetail.uid}</p>
                         </div>
                         <div>
-                          <p className="text-slate-400">Nama Lengkap</p>
-                          <p className="font-bold text-slate-100">{userDetail.full_name || 'N/A'}</p>
+                          <p className="text-slate-500 dark:text-slate-400">Nama Lengkap</p>
+                          <p className="font-bold text-slate-900 dark:text-white">{userDetail.full_name || 'N/A'}</p>
                         </div>
                         <div>
-                          <p className="text-slate-400">Email</p>
-                          <p className="font-bold text-slate-100 break-all">{userDetail.email || 'N/A'}</p>
+                          <p className="text-slate-500 dark:text-slate-400">Email</p>
+                          <p className="font-bold text-slate-900 dark:text-white break-all">{userDetail.email || 'N/A'}</p>
                         </div>
                         <div>
-                          <p className="text-slate-400">Telepon</p>
-                          <p className="font-bold text-slate-100">{userDetail.phone_number || 'N/A'}</p>
+                          <p className="text-slate-500 dark:text-slate-400">Telepon</p>
+                          <p className="font-bold text-slate-900 dark:text-white">{userDetail.phone_number || 'N/A'}</p>
                         </div>
                         <div>
-                          <p className="text-slate-400">Lokasi</p>
-                          <p className="font-bold text-slate-100">{userDetail.city || 'N/A'}, {userDetail.province || 'N/A'}</p>
+                          <p className="text-slate-500 dark:text-slate-400">Lokasi</p>
+                          <p className="font-bold text-slate-900 dark:text-white">{userDetail.city || 'N/A'}, {userDetail.province || 'N/A'}</p>
                         </div>
                         <div>
-                          <p className="text-slate-400">Tanggal Registrasi</p>
-                          <p className="font-bold text-slate-100">{userDetail.registration_date?.split('T')[0] || 'N/A'}</p>
+                          <p className="text-slate-500 dark:text-slate-400">Tanggal Registrasi</p>
+                          <p className="font-bold text-slate-900 dark:text-white">{userDetail.registration_date?.split('T')[0] || 'N/A'}</p>
                         </div>
                       </div>
                     </div>
 
                     {/* Fraud Assessment */}
                     <div className="space-y-3">
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hasil Assessment Risiko</h4>
+                      <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Hasil Assessment Risiko</h4>
                       <div className="grid grid-cols-2 gap-3 text-center">
-                        <div className="border border-slate-800 rounded-lg p-3 bg-slate-900 shadow-sm">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Risk Score</p>
-                          <p className="text-xl font-black text-slate-100 mt-1 font-mono">{userDetail.risk_score_rule_based}/100</p>
+                        <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-3 bg-white dark:bg-slate-900 shadow-sm">
+                          <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Risk Score</p>
+                          <p className="text-xl font-black text-slate-900 dark:text-white mt-1 font-mono">{userDetail.risk_score_rule_based}/100</p>
                         </div>
-                        <div className="border border-slate-800 rounded-lg p-3 bg-slate-900 shadow-sm">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Model ML Probability</p>
+                        <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-3 bg-white dark:bg-slate-900 shadow-sm">
+                          <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Model ML Probability</p>
                           <p className="text-xl font-black text-red-600 mt-1 font-mono">
                             {userDetail.ml_probability !== null ? `${(userDetail.ml_probability * 100).toFixed(1)}%` : 'N/A'}
                           </p>
@@ -385,7 +385,7 @@ export default function RiskScoringPage() {
 
                     {/* Suspect indicators */}
                     <div className="space-y-2">
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Faktor Pemicu Kecurigaan</h4>
+                      <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Faktor Pemicu Kecurigaan</h4>
                       {userDetail.reasons && userDetail.reasons.length > 0 ? (
                         <div className="space-y-1.5">
                           {userDetail.reasons.map((r, i) => (
@@ -396,39 +396,39 @@ export default function RiskScoringPage() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-400 italic">Tidak ada pemicu kecurigaan utama.</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 italic">Tidak ada pemicu kecurigaan utama.</p>
                       )}
                     </div>
 
                     {/* Graph Connections */}
                     <div className="space-y-3">
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Relasi Sistem (Graph Connections)</h4>
+                      <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Relasi Sistem (Graph Connections)</h4>
                       
                       <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div className="bg-slate-800/50 border border-slate-800 p-3 rounded-lg">
-                          <p className="text-slate-400 font-semibold mb-1">Perangkat Bersama (Device)</p>
-                          <p className="font-bold text-slate-100 text-sm">{userDetail.connected_devices.length} Perangkat</p>
+                        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-3 rounded-lg">
+                          <p className="text-slate-500 dark:text-slate-400 font-semibold mb-1">Perangkat Bersama (Device)</p>
+                          <p className="font-bold text-slate-900 dark:text-white text-sm">{userDetail.connected_devices.length} Perangkat</p>
                           {userDetail.connected_devices.length > 0 && (
                             <p className="text-[10px] text-slate-500 mt-1 truncate">{userDetail.connected_devices.join(', ')}</p>
                           )}
                         </div>
-                        <div className="bg-slate-800/50 border border-slate-800 p-3 rounded-lg">
-                          <p className="text-slate-400 font-semibold mb-1">Pembayaran Bersama</p>
-                          <p className="font-bold text-slate-100 text-sm">{userDetail.connected_payments.length} Alat</p>
+                        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-3 rounded-lg">
+                          <p className="text-slate-500 dark:text-slate-400 font-semibold mb-1">Pembayaran Bersama</p>
+                          <p className="font-bold text-slate-900 dark:text-white text-sm">{userDetail.connected_payments.length} Alat</p>
                           {userDetail.connected_payments.length > 0 && (
                             <p className="text-[10px] text-slate-500 mt-1 truncate">{userDetail.connected_payments.join(', ')}</p>
                           )}
                         </div>
-                        <div className="bg-slate-800/50 border border-slate-800 p-3 rounded-lg">
-                          <p className="text-slate-400 font-semibold mb-1">Alamat Bersama (Shipping)</p>
-                          <p className="font-bold text-slate-100 text-sm">{userDetail.connected_addresses.length} Alamat</p>
+                        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-3 rounded-lg">
+                          <p className="text-slate-500 dark:text-slate-400 font-semibold mb-1">Alamat Bersama (Shipping)</p>
+                          <p className="font-bold text-slate-900 dark:text-white text-sm">{userDetail.connected_addresses.length} Alamat</p>
                           {userDetail.connected_addresses.length > 0 && (
                             <p className="text-[10px] text-slate-500 mt-1 truncate">{userDetail.connected_addresses.join(', ')}</p>
                           )}
                         </div>
-                        <div className="bg-slate-800/50 border border-slate-800 p-3 rounded-lg">
-                          <p className="text-slate-400 font-semibold mb-1">IP Login Bersama</p>
-                          <p className="font-bold text-slate-100 text-sm">{userDetail.connected_ips.length} IP Address</p>
+                        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-3 rounded-lg">
+                          <p className="text-slate-500 dark:text-slate-400 font-semibold mb-1">IP Login Bersama</p>
+                          <p className="font-bold text-slate-900 dark:text-white text-sm">{userDetail.connected_ips.length} IP Address</p>
                           {userDetail.connected_ips.length > 0 && (
                             <p className="text-[10px] text-slate-500 mt-1 truncate">{userDetail.connected_ips.join(', ')}</p>
                           )}
@@ -438,52 +438,52 @@ export default function RiskScoringPage() {
 
                     {/* Key Behavioral Features */}
                     <div className="space-y-2">
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Metrik Perilaku Utama</h4>
-                      <div className="border border-slate-800 rounded-lg divide-y divide-slate-800 text-xs bg-slate-900 shadow-sm">
+                      <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Metrik Perilaku Utama</h4>
+                      <div className="border border-slate-200 dark:border-slate-800 rounded-lg divide-y divide-slate-800 text-xs bg-white dark:bg-slate-900 shadow-sm">
                         <div className="flex justify-between px-3 py-2">
                           <span className="text-slate-500">Akun per Device Fingerprint</span>
-                          <span className="font-bold text-slate-300">{userDetail.features.max_acc_dev}</span>
+                          <span className="font-bold text-slate-700 dark:text-slate-300">{userDetail.features.max_acc_dev}</span>
                         </div>
                         <div className="flex justify-between px-3 py-2">
                           <span className="text-slate-500">Akun per Shipping Address</span>
-                          <span className="font-bold text-slate-300">{userDetail.features.max_acc_addr}</span>
+                          <span className="font-bold text-slate-700 dark:text-slate-300">{userDetail.features.max_acc_addr}</span>
                         </div>
                         <div className="flex justify-between px-3 py-2">
                           <span className="text-slate-500">Rasio Order dengan Promo/Voucher</span>
-                          <span className="font-bold text-slate-300">{(userDetail.features.promo_ratio * 100).toFixed(0)}%</span>
+                          <span className="font-bold text-slate-700 dark:text-slate-300">{(userDetail.features.promo_ratio * 100).toFixed(0)}%</span>
                         </div>
                         <div className="flex justify-between px-3 py-2">
                           <span className="text-slate-500">Frekuensi Login (1 Jam / 24 Jam)</span>
-                          <span className="font-bold text-slate-300">{userDetail.features.login_f1h}x / {userDetail.features.login_f24h}x</span>
+                          <span className="font-bold text-slate-700 dark:text-slate-300">{userDetail.features.login_f1h}x / {userDetail.features.login_f24h}x</span>
                         </div>
                         <div className="flex justify-between px-3 py-2">
                           <span className="text-slate-500">Registrasi s.d Transaksi Pertama</span>
-                          <span className="font-bold text-slate-300">{userDetail.features.reg2txn_min.toFixed(0)} menit</span>
+                          <span className="font-bold text-slate-700 dark:text-slate-300">{userDetail.features.reg2txn_min.toFixed(0)} menit</span>
                         </div>
                         <div className="flex justify-between px-3 py-2">
                           <span className="text-slate-500">Referral Ring Score</span>
-                          <span className="font-bold text-slate-300">{userDetail.features.ref_ring.toFixed(2)}</span>
+                          <span className="font-bold text-slate-700 dark:text-slate-300">{userDetail.features.ref_ring.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center text-slate-400 mt-20">Gagal memuat detail akun.</div>
+                  <div className="text-center text-slate-500 dark:text-slate-400 mt-20">Gagal memuat detail akun.</div>
                 )}
               </div>
 
               {/* Drawer Footer */}
-              <div className="bg-slate-800/50 border-t border-slate-800 p-4 flex gap-3">
+              <div className="bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 p-4 flex gap-3">
                 <Link
                   href={`/graph?user_id=${selectedUserId}`}
                   onClick={() => setSelectedUserId(null)}
-                  className="flex-1 text-center bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-3 rounded-lg shadow transition-colors"
+                  className="flex-1 text-center bg-v-blue hover:bg-blue-600 text-white font-bold text-xs py-3 rounded-lg shadow transition-colors"
                 >
                   Visualisasikan di Graph
                 </Link>
                 <button
                   onClick={() => setSelectedUserId(null)}
-                  className="flex-1 border border-slate-300 hover:bg-slate-800/50 text-slate-300 font-bold text-xs py-3 rounded-lg transition-colors"
+                  className="flex-1 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold text-xs py-3 rounded-lg transition-colors"
                 >
                   Tutup Panel
                 </button>

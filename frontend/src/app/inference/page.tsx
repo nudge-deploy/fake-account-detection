@@ -77,21 +77,21 @@ export default function ModelInferencePage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         
         {/* Form Panel */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm space-y-6">
-          <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-            <h3 className="font-bold text-slate-100">Formulir Input Fitur</h3>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-6">
+          <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+            <h3 className="font-bold text-slate-900 dark:text-white">Formulir Input Fitur</h3>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={loadNormalPreset}
-                className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-400 font-bold px-2.5 py-1 rounded transition-colors"
+                className="text-xs bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold px-2.5 py-1 rounded transition-colors"
               >
                 Normal Preset
               </button>
               <button
                 type="button"
                 onClick={loadVoucherFarmerPreset}
-                className="text-xs bg-red-50 hover:bg-red-100 text-red-600 font-bold px-2.5 py-1 rounded transition-colors"
+                className="text-xs bg-blue-50 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-slate-700 text-v-blue dark:text-blue-400 font-bold px-2.5 py-1 rounded transition-colors"
               >
                 Bot Preset (Abuse)
               </button>
@@ -102,7 +102,7 @@ export default function ModelInferencePage() {
             
             {/* Accounts per Device */}
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
                 Akun Terhubung per Device Fingerprint (Max): {accountsPerDevice}
               </label>
               <input
@@ -111,14 +111,14 @@ export default function ModelInferencePage() {
                 max="15"
                 value={accountsPerDevice}
                 onChange={(e) => setAccountsPerDevice(parseInt(e.target.value))}
-                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-v-blue"
               />
-              <span className="text-[10px] text-slate-400">Jumlah akun yang pernah didaftarkan/login pada perangkat yang sama.</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">Jumlah akun yang pernah didaftarkan/login pada perangkat yang sama.</span>
             </div>
 
             {/* Accounts per Payment */}
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
                 Akun Terhubung per Alat Pembayaran (Max): {accountsPerPayment}
               </label>
               <input
@@ -127,14 +127,14 @@ export default function ModelInferencePage() {
                 max="10"
                 value={accountsPerPayment}
                 onChange={(e) => setAccountsPerPayment(parseInt(e.target.value))}
-                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-v-blue"
               />
-              <span className="text-[10px] text-slate-400">Jumlah akun belanja yang berbagi kartu kredit/nomor e-wallet yang sama.</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">Jumlah akun belanja yang berbagi kartu kredit/nomor e-wallet yang sama.</span>
             </div>
 
             {/* Accounts per Address */}
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
                 Akun Terhubung per Alamat Pengiriman (Max): {accountsPerAddress}
               </label>
               <input
@@ -143,14 +143,14 @@ export default function ModelInferencePage() {
                 max="10"
                 value={accountsPerAddress}
                 onChange={(e) => setAccountsPerAddress(parseInt(e.target.value))}
-                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-v-blue"
               />
-              <span className="text-[10px] text-slate-400">Jumlah akun belanja yang mengirimkan pesanan ke alamat yang sama.</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">Jumlah akun belanja yang mengirimkan pesanan ke alamat yang sama.</span>
             </div>
 
             {/* Promo Order Ratio */}
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
                 Rasio Order Menggunakan Voucher/Promo: {(promoOrderRatio * 100).toFixed(0)}%
               </label>
               <input
@@ -160,14 +160,14 @@ export default function ModelInferencePage() {
                 step="0.05"
                 value={promoOrderRatio}
                 onChange={(e) => setPromoOrderRatio(parseFloat(e.target.value))}
-                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-v-blue"
               />
-              <span className="text-[10px] text-slate-400">Persentase transaksi belanja yang memanfaatkan potongan harga/voucher diskon.</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">Persentase transaksi belanja yang memanfaatkan potongan harga/voucher diskon.</span>
             </div>
 
             {/* Login f1h */}
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
                 Frekuensi Login 1 Jam Terakhir: {loginF1h}x
               </label>
               <input
@@ -176,14 +176,14 @@ export default function ModelInferencePage() {
                 max="30"
                 value={loginF1h}
                 onChange={(e) => setLoginF1h(parseInt(e.target.value))}
-                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-v-blue"
               />
-              <span className="text-[10px] text-slate-400">Jumlah aktivitas login / ganti akun dalam kurun 1 jam (indikasi bot).</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">Jumlah aktivitas login / ganti akun dalam kurun 1 jam (indikasi bot).</span>
             </div>
 
             {/* Login f24h */}
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
                 Frekuensi Login 24 Jam Terakhir: {loginF24h}x
               </label>
               <input
@@ -192,14 +192,14 @@ export default function ModelInferencePage() {
                 max="100"
                 value={loginF24h}
                 onChange={(e) => setLoginF24h(parseInt(e.target.value))}
-                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-v-blue"
               />
-              <span className="text-[10px] text-slate-400">Jumlah aktivitas login dalam 24 jam terakhir.</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">Jumlah aktivitas login dalam 24 jam terakhir.</span>
             </div>
 
             {/* Signup to First Transaction Minutes */}
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
                 Waktu Registrasi s.d Transaksi Pertama: {signupToFirstTxn} Menit
               </label>
               <input
@@ -208,9 +208,9 @@ export default function ModelInferencePage() {
                 max="10080" // 1 week
                 value={signupToFirstTxn}
                 onChange={(e) => setSignupToFirstTxn(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-slate-900"
+                className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-v-blue bg-white dark:bg-slate-900"
               />
-              <span className="text-[10px] text-slate-400">Kecepatan belanja pasca pendaftaran. Bot/Voucher farmer biasanya bertransaksi &lt; 30 menit.</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">Kecepatan belanja pasca pendaftaran. Bot/Voucher farmer biasanya bertransaksi &lt; 30 menit.</span>
             </div>
 
             {/* Submit Button */}
@@ -218,7 +218,7 @@ export default function ModelInferencePage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-700 text-white font-bold text-sm py-3 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-v-blue hover:bg-blue-600 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold text-sm py-3 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -235,8 +235,8 @@ export default function ModelInferencePage() {
         </div>
 
         {/* Results Panel */}
-        <div className="bg-slate-900 text-white border border-slate-800 rounded-xl p-6 shadow-md min-h-[460px] flex flex-col justify-between relative overflow-hidden">
-          <div className="absolute top-0 right-0 h-40 w-40 bg-slate-800 rounded-full translate-x-12 -translate-y-12 opacity-30 pointer-events-none"></div>
+        <div className="bg-white dark:bg-slate-900 text-white border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-md min-h-[460px] flex flex-col justify-between relative overflow-hidden">
+          <div className="absolute top-0 right-0 h-40 w-40 bg-slate-100 dark:bg-slate-800 rounded-full translate-x-12 -translate-y-12 opacity-30 pointer-events-none"></div>
 
           {error && (
             <div className="p-4 bg-red-950/40 border border-red-800 rounded-lg text-red-300 text-xs">
@@ -247,17 +247,17 @@ export default function ModelInferencePage() {
           {!result && !loading && (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-3 my-auto">
               <span className="text-4xl">🤖</span>
-              <h4 className="font-bold text-slate-300">Siap Melakukan Prediksi</h4>
-              <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
-                Silakan isi data parameter perilaku akun di panel sebelah kiri dan klik **Jalankan Prediksi Model ML** untuk memicu inferensi model.
+              <h4 className="font-bold text-slate-700 dark:text-slate-300">Siap Melakukan Prediksi</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
+                Silakan isi data parameter perilaku akun di panel sebelah kiri dan klik <span className="font-bold">Jalankan Prediksi Model ML</span> untuk memicu inferensi model.
               </p>
             </div>
           )}
 
           {loading && (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4 my-auto">
-              <div className="h-10 w-10 border-4 border-slate-700 border-t-red-500 rounded-full animate-spin"></div>
-              <p className="text-xs text-slate-400 animate-pulse font-medium">Model sedang menghitung probabilitas kecurangan...</p>
+              <div className="h-10 w-10 border-4 border-slate-300 dark:border-slate-700 border-t-v-blue rounded-full animate-spin"></div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 animate-pulse font-medium">Model sedang menghitung probabilitas kecurangan...</p>
             </div>
           )}
 
@@ -265,7 +265,7 @@ export default function ModelInferencePage() {
             <div className="space-y-6 flex-1 flex flex-col justify-between h-full">
               {/* Header result */}
               <div>
-                <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Klasifikasi Hasil Inferensi</span>
+                <span className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">Klasifikasi Hasil Inferensi</span>
                 <div className="flex items-center gap-3 mt-1.5">
                   <h3 className={`text-2xl font-black tracking-tight ${
                     result.model_prediction === 1 ? 'text-red-500' : 'text-emerald-400'
@@ -283,14 +283,14 @@ export default function ModelInferencePage() {
               {/* Score breakdown indicator */}
               <div className="space-y-2 bg-slate-950/40 p-4 rounded-xl border border-slate-800/60">
                 <div className="flex justify-between items-center text-xs font-semibold">
-                  <span className="text-slate-400">Probabilitas Kecurangan (ML)</span>
+                  <span className="text-slate-500 dark:text-slate-400">Probabilitas Kecurangan (ML)</span>
                   <span className={`font-mono font-bold text-sm ${result.model_prediction === 1 ? 'text-red-400' : 'text-emerald-400'}`}>
                     {(result.model_probability * 100).toFixed(1)}%
                   </span>
                 </div>
                 
                 {/* Custom Progress bar */}
-                <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div
                     style={{ width: `${result.model_probability * 100}%` }}
                     className={`h-full rounded-full transition-all duration-500 ${
@@ -308,7 +308,7 @@ export default function ModelInferencePage() {
 
               {/* Indicators checklist */}
               <div className="space-y-2">
-                <span className="block font-bold text-slate-400 uppercase tracking-wider text-[10px]">Indikator Kecurigaan yang Terpicu</span>
+                <span className="block font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">Indikator Kecurigaan yang Terpicu</span>
                 <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1">
                   {result.reasons && result.reasons.length > 0 ? (
                     result.reasons.map((r, i) => (
