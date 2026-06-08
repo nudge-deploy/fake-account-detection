@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * Purpose: Render risk scoring table, filters, pagination, and user detail drawer.
+ * Used by: /risk route in the Next.js app.
+ * Depends on: backend user/detail APIs from src/lib/api and Next Link.
+ * Public functions: RiskScoringPage default export.
+ * Side effects: Fetches filtered users and selected user details from the backend API.
+ */
+
 import { useEffect, useState } from 'react';
 import { listUsers, getUserDetails, RiskUser, UserDetails } from '@/lib/api';
 import Link from 'next/link';
@@ -142,9 +150,11 @@ export default function RiskScoringPage() {
             >
               <option value="">Semua Label</option>
               <option value="normal">Normal (Bukan Fraud)</option>
-              <option value="device_abuse">Device Abuse (Emulator)</option>
-              <option value="voucher_abuse">Voucher Abuse (Farming)</option>
-              <option value="referral_abuse">Referral Abuse (Rings)</option>
+              <option value="shared_device_abuse">Shared Device Abuse</option>
+              <option value="shared_address_abuse">Shared Address Abuse</option>
+              <option value="shared_payment_abuse">Shared Payment Abuse</option>
+              <option value="voucher_farming">Voucher Farming</option>
+              <option value="referral_abuse">Referral Abuse</option>
             </select>
           </div>
         </div>
@@ -454,7 +464,7 @@ export default function RiskScoringPage() {
                         </div>
                         <div className="flex justify-between px-3 py-2">
                           <span className="text-slate-500">Frekuensi Login (1 Jam / 24 Jam)</span>
-                          <span className="font-bold text-slate-700 dark:text-slate-300">{userDetail.features.login_f1h}x / {userDetail.features.login_f24h}x</span>
+                          <span className="font-bold text-slate-700 dark:text-slate-300">{userDetail.features.login_v1h}x / {userDetail.features.login_v24h}x</span>
                         </div>
                         <div className="flex justify-between px-3 py-2">
                           <span className="text-slate-500">Registrasi s.d Transaksi Pertama</span>

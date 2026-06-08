@@ -1,5 +1,8 @@
-"""Purpose: Build raw graph CSV artifacts from raw tables.
-Used by: extract_graph_features.py
+"""Purpose: Build raw graph CSV artifacts from raw user/entity/referral tables.
+Used by: extract_graph_features.py and export_graph_api.py.
+Depends on: raw users, user_devices, user_addresses, user_payments, login_sessions, referrals CSVs.
+Public functions: build_graph_csv.
+Side effects: Writes data/processed/graph_nodes.csv and graph_edges.csv.
 """
 
 import os
@@ -19,6 +22,7 @@ def build_graph_csv():
     df_user_addresses = pd.read_csv(os.path.join(RAW_DIR, 'user_addresses.csv'))
     df_user_payments = pd.read_csv(os.path.join(RAW_DIR, 'user_payments.csv'))
     df_login_sessions = pd.read_csv(os.path.join(RAW_DIR, 'login_sessions.csv'))
+    df_referrals = pd.read_csv(os.path.join(RAW_DIR, 'referrals.csv'))
 
     nodes = []
     edges = []
@@ -82,6 +86,16 @@ def build_graph_csv():
             'source': row['user_id'],
             'target': f'IP_{ip}',
             'edge_type': 'uses_ip'
+        })
+
+    print("Creating Referral Edges...")
+    for _, row in df_referrals.iterrows():
+        if pd.isna(row['referrer_user_id']) or pd.isna(row['referred_user_id']):
+            continue
+        edges.append({
+            'source': row['referrer_user_id'],
+            'target': row['referred_user_id'],
+            'edge_type': 'referred_user'
         })
 
     nodes_df = pd.DataFrame(nodes).drop_duplicates(subset=['node_id'])

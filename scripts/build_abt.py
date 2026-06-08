@@ -411,8 +411,16 @@ def compute_risk_score(row):
     if row['promo_order_ratio'] > 0.8: score += 15
     if 0 <= row['signup_to_first_transaction_minutes'] < 30: score += 15
     if row['new_user_voucher_usage'] > 2: score += 10
+
+    # Referral abuse
+    if row.get('referral_ring_score', 0) > 100: score += 40
+    elif row.get('referral_ring_score', 0) > 3: score += 25
+    if row.get('referral_count', 0) >= 3: score += 10
     
-    # Koneksi Graf Jaringan (Dinonaktifkan sementara)
+    # Koneksi Graf Jaringan (Dinonaktifkan sementara untuk rule score).
+    # Nilai degree/shared_ip_count dapat sangat besar pada normal user di
+    # synthetic graph saat ini, sehingga lebih aman dipakai sebagai reason/ML
+    # signal dibanding rule score langsung.
     # if row.get('graph_degree', 0) > 10: score += 20
     # if row.get('connected_component_size', 0) > 5: score += 10
     

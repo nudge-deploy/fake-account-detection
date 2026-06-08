@@ -30,8 +30,8 @@ export default function ModelInferencePage() {
         max_acc_pay: accountsPerPayment,
         max_acc_addr: accountsPerAddress,
         promo_ratio: promoOrderRatio,
-        login_f1h: loginF1h,
-        login_f24h: loginF24h,
+        login_v1h: loginF1h,
+        login_v24h: loginF24h,
         reg2txn_min: signupToFirstTxn,
       };
 

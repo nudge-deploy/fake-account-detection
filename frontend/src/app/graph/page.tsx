@@ -329,8 +329,10 @@ function GraphContent() {
                 >
                   <option value="">Semua Tipe (Normal & Fraud)</option>
                   <option value="normal">Normal (Bukan Fraud)</option>
-                  <option value="device_abuse">Device Abuse</option>
-                  <option value="voucher_abuse">Voucher Abuse</option>
+                  <option value="shared_device_abuse">Shared Device Abuse</option>
+                  <option value="shared_address_abuse">Shared Address Abuse</option>
+                  <option value="shared_payment_abuse">Shared Payment Abuse</option>
+                  <option value="voucher_farming">Voucher Farming</option>
                   <option value="referral_abuse">Referral Abuse</option>
                 </select>
               </div>
