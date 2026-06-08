@@ -1,8 +1,22 @@
+<!--
+Purpose: Define ABT feature names, formulas, and business interpretation.
+Used by: Model reviewers, backend developers, and feature lineage audits.
+Main dependencies: scripts/build_abt.py, data/abt/fake_account_abt.csv, models/feature_columns.json.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 # Fraud Detection Feature Engineering Documentation
 
 ## 1. Overview
 
 Dokumen ini menjelaskan seluruh fitur yang dihasilkan oleh modul `build_abt.py` dan digunakan sebagai Analytics Base Table (ABT) untuk Fraud Detection, Multi-Account Detection, Voucher Abuse Detection, Referral Abuse Detection, dan Fraud Ring Detection.
+
+Kontrak final ABT:
+- `fake_account_abt.csv` berisi 10.000 baris dan 69 kolom total.
+- 64 kolom menjadi input model dan disimpan urutannya di `models/feature_columns.json`.
+- 5 kolom tidak masuk model karena merupakan metadata/label: `uid`, `fraud`, `ftype`, `risk_score`, `risk_cat`.
+- Fitur graph aggregate (`degree`, `comp_size`, `cluster`, `shared_ent`, dan shared counters) sudah menjadi bagian dari ABT final.
 
 ---
 
@@ -116,15 +130,15 @@ Frekuensi penggunaan voucher.
 | Nama Fitur | Rumus Kode | Definisi Teknis | Interpretasi Bisnis |
 |------------|------------|-----------------|---------------------|
 | max_acc_ip | max(users_on_ip) | Maks akun pada IP sama | Fraud ring indicator |
-| login_f1h | Max login dalam 1 jam | Login velocity 1h | Burst login |
-| login_f2h | Max login dalam 2 jam | Login velocity 2h | Burst login |
-| login_f3h | Max login dalam 3 jam | Login velocity 3h | Burst login |
-| login_f4h | Max login dalam 4 jam | Login velocity 4h | Burst login |
-| login_f5h | Max login dalam 5 jam | Login velocity 5h | Burst login |
-| login_f6h | Max login dalam 6 jam | Login velocity 6h | Burst login |
-| login_f12h | Max login dalam 12 jam | Login velocity 12h | Burst login |
-| login_f18h | Max login dalam 18 jam | Login velocity 18h | Burst login |
-| login_f24h | Max login dalam 24 jam | Login velocity 24h | Burst login |
+| login_v1h | Maks login dari 00:00 sampai 01:00 pada hari tersibuk user | Daily login frequency bucket 1h | Burst login setelah tengah malam |
+| login_v2h | Maks login dari 00:00 sampai 02:00 pada hari tersibuk user | Daily login frequency bucket 2h | Burst login setelah tengah malam |
+| login_v3h | Maks login dari 00:00 sampai 03:00 pada hari tersibuk user | Daily login frequency bucket 3h | Burst login setelah tengah malam |
+| login_v4h | Maks login dari 00:00 sampai 04:00 pada hari tersibuk user | Daily login frequency bucket 4h | Burst login setelah tengah malam |
+| login_v5h | Maks login dari 00:00 sampai 05:00 pada hari tersibuk user | Daily login frequency bucket 5h | Burst login setelah tengah malam |
+| login_v6h | Maks login dari 00:00 sampai 06:00 pada hari tersibuk user | Daily login frequency bucket 6h | Burst login setelah tengah malam |
+| login_v12h | Maks login dari 00:00 sampai 12:00 pada hari tersibuk user | Daily login frequency bucket 12h | Aktivitas tinggi paruh hari |
+| login_v18h | Maks login dari 00:00 sampai 18:00 pada hari tersibuk user | Daily login frequency bucket 18h | Aktivitas tinggi sebelum malam |
+| login_v24h | Maks total login harian user | Daily login frequency bucket 24h | Intensitas login harian |
 
 ---
 
@@ -162,7 +176,7 @@ Frekuensi penggunaan voucher.
 | max_acc_dev > 2 | +15 |
 | max_acc_addr > 5 | +20 |
 | max_acc_ip > 5 | +15 |
-| login_f1h > 10 | +40 |
+| login_v1h > 10 | +40 |
 | promo_ratio > 0.8 | +15 |
 | reg2txn_min < 30 | +15 |
 | newuser_voucher > 2 | +10 |

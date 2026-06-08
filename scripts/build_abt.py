@@ -1,7 +1,7 @@
 """Purpose: Build the final Analytics Base Table for fraud model training/API use.
 Used by: train_model.py, upload scripts, backend ModelService.
 Depends on: raw CSVs, optional processed/user_graph_features.csv, pandas, networkx.
-Public functions: calc_entropy, calc_phone_pattern_score, compute_risk_score.
+Public functions: calc_entropy, calc_phone_pattern_score, get_login_frequency_windows, compute_risk_score.
 Side effects: Writes data/abt/fake_account_abt.csv.
 """
 
@@ -224,13 +224,6 @@ users_per_ip = df_login_sessions.groupby('ip_address')['user_id'].nunique().to_d
 df_logins_merged = df_login_sessions.copy()
 df_logins_merged['users_on_ip'] = df_logins_merged['ip_address'].map(users_per_ip)
 
-# Fungsi frekuensi login: jumlah login dalam N jam terakhir dari tanggal referensi.
-# Ini BUKAN velocity window.
-# Frequency = count login pada periode terakhir, misalnya 1 jam terakhir, 2 jam terakhir, dst.
-login_reference_time = df_login_sessions['login_timestamp'].max()
-if pd.isnull(login_reference_time):
-    login_reference_time = pd.to_datetime('today')
-
 def get_login_frequency_windows(group):
     windows_hours = [1, 2, 3, 4, 5, 6, 12, 18, 24]
     results = {f'login_frequency_{h}h': 0 for h in windows_hours}
@@ -238,15 +231,38 @@ def get_login_frequency_windows(group):
     if group.empty:
         return pd.Series(results)
 
-    time_diff_hours = (login_reference_time - group['login_timestamp']).dt.total_seconds() / 3600.0
+    login_times = group['login_timestamp'].sort_values().copy()
+    login_day = login_times.dt.date
+    hours_since_midnight = (
+        login_times.dt.hour
+        + (login_times.dt.minute / 60.0)
+        + (login_times.dt.second / 3600.0)
+    )
+    daily_logins = pd.DataFrame({
+        'login_day': login_day,
+        'hours_since_midnight': hours_since_midnight,
+    })
 
     for h in windows_hours:
-        results[f'login_frequency_{h}h'] = int((time_diff_hours <= h).sum())
+        counts_by_day = (
+            daily_logins[daily_logins['hours_since_midnight'] <= h]
+            .groupby('login_day')
+            .size()
+        )
+        results[f'login_frequency_{h}h'] = int(counts_by_day.max()) if not counts_by_day.empty else 0
 
     return pd.Series(results)
 
-# Hitung frekuensi login untuk berbagai jendela waktu terakhir
-frequency_data = df_login_sessions.groupby('user_id').apply(get_login_frequency_windows).reset_index()
+# Hitung frekuensi login sejak jam 00:00 per hari.
+# login_frequency_1h = maksimum jumlah login user dari 00:00 sampai 01:00
+# pada salah satu hari; login_frequency_24h = maksimum login harian user.
+frequency_data = (
+    df_login_sessions
+    .sort_values(['user_id', 'login_timestamp'])
+    .groupby('user_id', group_keys=False)
+    .apply(get_login_frequency_windows)
+    .reset_index()
+)
 
 # Agregasi fitur login lainnya
 user_login_feats = df_logins_merged.groupby('user_id').agg(
@@ -523,15 +539,15 @@ output_col_map = {
     'signup_to_first_transaction_minutes': 'reg2txn_min',
     'new_user_voucher_usage': 'newuser_voucher',
     'accounts_per_ip_max': 'max_acc_ip',
-    'login_frequency_1h': 'login_f1h',
-    'login_frequency_2h': 'login_f2h',
-    'login_frequency_3h': 'login_f3h',
-    'login_frequency_4h': 'login_f4h',
-    'login_frequency_5h': 'login_f5h',
-    'login_frequency_6h': 'login_f6h',
-    'login_frequency_12h': 'login_f12h',
-    'login_frequency_18h': 'login_f18h',
-    'login_frequency_24h': 'login_f24h',
+    'login_frequency_1h': 'login_v1h',
+    'login_frequency_2h': 'login_v2h',
+    'login_frequency_3h': 'login_v3h',
+    'login_frequency_4h': 'login_v4h',
+    'login_frequency_5h': 'login_v5h',
+    'login_frequency_6h': 'login_v6h',
+    'login_frequency_12h': 'login_v12h',
+    'login_frequency_18h': 'login_v18h',
+    'login_frequency_24h': 'login_v24h',
     'referral_count': 'ref_cnt',
     'referral_ring_score': 'ref_ring',
     'total_transactions_last_1m': 'txn_f1m',

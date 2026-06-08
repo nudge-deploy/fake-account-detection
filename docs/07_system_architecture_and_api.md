@@ -1,3 +1,11 @@
+<!--
+Purpose: Describe system architecture, backend API integration, and runtime flow.
+Used by: Developers and reviewers validating end-to-end service wiring.
+Main dependencies: FastAPI backend, Next.js frontend, model artifacts, ABT, graph JSON.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 # Arsitektur Sistem & Integrasi API
 
 Dokumen ini merangkum penyatuan *(integration)* antara Model Machine Learning yang telah dilatih dengan antarmuka sistem nyata, membentuk siklus perlindungan *End-to-End*.
@@ -7,7 +15,7 @@ Dokumen ini merangkum penyatuan *(integration)* antara Model Machine Learning ya
 ## 1. Topologi Arsitektur Sistem
 
 Sistem deteksi penipuan ini terdiri dari tiga komponen utama:
-1.  **Data & Model Engine (Python/Pandas/Scikit-Learn/XGBoost):** Skrip *offline* yang mensimulasikan jutaan baris log transaksi, mengubahnya menjadi *Network Graph*, menyusun *Analytics Base Table* (ABT), dan melatih model kecerdasan buatan (*AI*).
+1.  **Data & Model Engine (Python/Pandas/Scikit-Learn/XGBoost):** Skrip *offline* yang mensimulasikan data relasional, membuat *Network Graph*, menyusun *Analytics Base Table* (ABT final berisi raw features + graph aggregate features), melatih model, dan mengunggah data ke Supabase.
 2.  **API Backend (FastAPI):** Mesin pelayan super cepat (berbasis *asynchronous*) yang melayani permintaan deteksi secara langsung (*real-time*). Backend memuat file `.pkl` dari *XGBoost* ke dalam memori server untuk menjamin latensi prediksi di bawah 50ms.
 3.  **Frontend Dashboard (React/Next.js/Tailwind CSS):** Antarmuka grafis futuristik bergaya *Cyberpunk/Glassmorphism* untuk tim analis investigasi (Fraud/Risk Team) guna memonitor pergerakan akun-akun mencurigakan secara visual.
 
@@ -37,7 +45,7 @@ Kalkulasi *Decision Tree* acak yang menilai korelasi rumit pada 64 fitur sekalig
 
 Dalam implementasi API `/api/user/{uid}`, sistem tidak sekadar membaca prediksi yang sudah tersimpan di *Database* (karena data tersebut bisa basi/kuno). 
 
-Fungsi `predict_user()` di `model_service.py` akan **secara dinamis mengambil 64 indikator terbaru dari Database**, memasukkannya ke dalam format *Pandas DataFrame*, dan menembakkannya secara langsung ke model *XGBoost* yang ada di memori *Server*. Hal ini menjamin bahwa **Nilai Probabilitas (ML Probability)** yang dilihat oleh Tim Investigator di layar UI adalah keputusan AI paling *up-to-date* pada detik tersebut.
+Fungsi `predict_user()` di `model_service.py` akan **secara dinamis mengambil 64 indikator model dari ABT final**, memasukkannya ke dalam format *Pandas DataFrame*, dan menembakkannya secara langsung ke model champion yang ada di memori *Server*. Hal ini menjamin bahwa **Nilai Probabilitas (ML Probability)** yang dilihat oleh Tim Investigator di layar UI selaras dengan `feature_columns.json` terbaru.
 
 ---
 

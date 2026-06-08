@@ -1,3 +1,11 @@
+<!--
+Purpose: Provide a presentation-ready explanation of the fraud detection prototype.
+Used by: Project reviewers, demo presenters, and documentation readers.
+Main dependencies: generated CSV schema, ABT, model artifacts, backend/frontend architecture.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 # 📊 Presentasi Detail Proyek: Prototype Deteksi Akun Palsu (Fake Account Detection)
 > **Sistem Analisis Berbasis Machine Learning, Graph Analytics, & Asisten AI Chatbot untuk Retail E-Commerce Mobile (Alfagift)**
 
@@ -80,23 +88,23 @@ erDiagram
 | Nama Tabel | Fungsi & Deskripsi | Kolom Utama (Contoh Isi Data) |
 | :--- | :--- | :--- |
 | **`users`** | Profil utama pengguna yang terdaftar di aplikasi. | `user_id`, `name`, `email`, `phone_number`, `is_verified` |
-| **`devices`** | Identitas fisik dan spesifikasi perangkat keras (HP). | `device_id`, `brand`, `os_version`, `is_rooted`, `is_emulator` |
+| **`devices`** | Identitas fisik dan spesifikasi perangkat keras (HP). | `device_id`, `device_fingerprint`, `device_type`, `os_version` |
 | **`user_devices`** | Tabel penghubung untuk mendeteksi HP yang dipakai bergantian. | `user_id`, `device_id`, `last_login` |
-| **`addresses`** | Master titik alamat pengiriman barang & koordinat. | `address_id`, `latitude`, `longitude`, `address_similarity_group` |
+| **`addresses`** | Master titik alamat pengiriman barang & koordinat. | `address_id`, `city`, `province`, `latitude`, `longitude` |
 | **`user_addresses`** | Tabel penghubung untuk mendeteksi sindikat pengiriman massal. | `user_id`, `address_id`, `is_primary` |
 | **`payments`** | Master instrumen pembayaran keuangan (e-wallet/kartu). | `payment_id`, `payment_method`, `masked_payment_number` |
 | **`user_payments`** | Tabel penghubung mendeteksi pemakaian 1 rekening oleh banyak akun. | `user_id`, `payment_id` |
 | **`vouchers`** | Katalog promosi, syarat, limit, dan jenis voucher. | `voucher_id`, `promo_category`, `discount_amount`, `min_spend` |
 | **`transactions`** | Data riwayat pemesanan utama / nota (*header*). | `transaction_id`, `user_id`, `voucher_id`, `total_amount` |
 | **`transaction_items`** | Rincian barang belanjaan dalam pesanan (*detail*). | `transaction_id`, `product_id`, `category`, `quantity`, `price` |
-| **`login_sessions`** | Rekaman histori aktivitas masuk untuk melacak *bot*. | `session_id`, `user_id`, `login_timestamp`, `ip_address`, `is_vpn` |
+| **`login_sessions`** | Rekaman histori aktivitas masuk untuk melacak *bot*. | `session_id`, `user_id`, `login_timestamp`, `ip_address`, `login_persona` |
 | **`referrals`** | Data undangan untuk melacak kecurangan *referral ring*. | `referral_id`, `referrer_user_id`, `referred_user_id` |
 | **`fraud_labels`** | Target variabel (*ground truth*) status keaslian akun. | `user_id`, `is_fake_account`, `fraud_type` |
 
 ### Tabel Analitik Akhir (ABT)
 | Nama Tabel | Fungsi & Deskripsi | Kolom Utama (Contoh Isi Data) |
 | :--- | :--- | :--- |
-| **`fake_account_abt`** | *Analytics Base Table*: Tabel master hasil akhir penyatuan dan agregasi dari semua data mentah sintetik di atas. Siap dikonsumsi langsung oleh algoritma *Machine Learning*. | Berisi fitur turunan seperti `promo_order_ratio`, `accounts_per_device_max`, `login_velocity_1h`, dll. |
+| **`fake_account_abt`** | *Analytics Base Table*: Tabel master hasil akhir penyatuan raw features dan graph aggregate features. Siap dikonsumsi langsung oleh algoritma *Machine Learning*. | Berisi fitur turunan seperti `promo_ratio`, `max_acc_dev`, `login_v1h`, `degree`, dll. |
 
 ---
 
@@ -117,52 +125,51 @@ Untuk mendeteksi akun palsu, data dari tabel-tabel mentah diekstrak menjadi **pu
 ### 2. Fitur Perangkat (Device Features)
 | Nama Fitur | Asal Tabel Mentah | Deskripsi Singkat | Kasus Fraud yang Dideteksi |
 | :--- | :--- | :--- | :--- |
-| `accounts_per_device_max`| `user_devices` | Akun maksimal yang pernah *login* di satu HP fisik. | *Shared Device Abuse* (1 HP dipakai puluhan akun). |
+| `max_acc_dev`| `user_devices` | Akun maksimal yang pernah *login* di satu HP fisik. | *Shared Device Abuse* (1 HP dipakai puluhan akun). |
 
 ### 3. Fitur Alamat & Pembayaran (Shared Entities)
 | Nama Fitur | Asal Tabel Mentah | Deskripsi Singkat | Kasus Fraud yang Dideteksi |
 | :--- | :--- | :--- | :--- |
-| `accounts_per_address_max`| `user_addresses`, `addresses` | Jumlah akun dengan titik koordinat/alamat pengiriman sama. | Sindikat penimbun promo di satu markas pengiriman. |
-| `accounts_per_payment_max`| `user_payments`, `payments` | Jumlah akun yang memakai kartu/e-wallet persis sama. | *Shared Payment Abuse* (Dimodali oleh satu orang). |
+| `max_acc_addr`| `user_addresses`, `addresses` | Jumlah akun dengan alamat pengiriman sama. | Sindikat penimbun promo di satu markas pengiriman. |
+| `max_acc_pay`| `user_payments`, `payments` | Jumlah akun yang memakai kartu/e-wallet persis sama. | *Shared Payment Abuse* (Dimodali oleh satu orang). |
 
 ### 4. Fitur Transaksi & Promo (Transaction Features)
 | Nama Fitur | Asal Tabel Mentah | Deskripsi Singkat | Kasus Fraud yang Dideteksi |
 | :--- | :--- | :--- | :--- |
-| `promo_order_ratio` | `transactions`, `vouchers` | Persentase order memakai voucher dibanding total belanja. | *Promo hunting* (Hanya transaksi saat diskon). |
-| `signup_to_first_txn_minutes`| `users`, `transactions` | Jeda waktu (menit) dari register sampai *checkout* pertama. | Bot eksekusi instan tanpa *browsing* produk (<5 menit). |
+| `promo_ratio` | `transactions`, `vouchers` | Persentase order memakai voucher dibanding total belanja. | *Promo hunting* (Hanya transaksi saat diskon). |
+| `reg2txn_min`| `users`, `transactions` | Jeda waktu (menit) dari register sampai *checkout* pertama. | Bot eksekusi instan tanpa *browsing* produk (<5 menit). |
 | `[metric]_last_1m_3m_6m` | `transactions` | Agregasi total/rata-rata order dalam periode waktu. | Memantau lonjakan mendadak akun yang sebelumnya pasif. |
 
-### 5. Fitur Kecepatan Aktivitas (Login Velocity)
+### 5. Fitur Frekuensi Aktivitas Login
 | Nama Fitur | Asal Tabel Mentah | Deskripsi Singkat | Kasus Fraud yang Dideteksi |
 | :--- | :--- | :--- | :--- |
-| `login_velocity_1h` hingga `6h` | `login_sessions` | Jumlah maksimal login dalam jendela waktu pendek (1, 2, 3, 4, 5, 6 jam). | Serangan *Credential Stuffing* (coba-coba *password* beruntun) & gempuran *bot* instan. |
-| `login_velocity_12h` & `18h` | `login_sessions` | Jumlah maksimal login dalam jendela waktu menengah (12 dan 18 jam). | Akun penimbun yang sering dioperasikan / dibagikan (*account sharing*) harian. |
-| `login_velocity_24h` | `login_sessions` | Jumlah maksimal login dalam siklus penuh 1 hari (24 jam). | Ketergantungan *bot* harian (misal: bot yang disetel otomatis *login* tiap jam). |
-| `accounts_per_ip_max` | `login_sessions` | Maksimal pengguna masuk dari satu alamat IP internet. | Markas komplotan pencari promo via satu koneksi Wi-Fi. |
-| `vpn_login_ratio` | `login_sessions` | Persentase total login menggunakan layanan VPN/Proxy. | Upaya menutupi identitas dan menyembunyikan lokasi asli. |
+| `login_v1h` hingga `login_v6h` | `login_sessions` | Maksimum login dari `00:00` sampai jam 1-6 pada hari tersibuk user. | Aktivitas login padat setelah tengah malam. |
+| `login_v12h` & `login_v18h` | `login_sessions` | Maksimum login dari `00:00` sampai jam 12 dan 18 pada hari tersibuk user. | Akun yang sering dioperasikan / dibagikan (*account sharing*) harian. |
+| `login_v24h` | `login_sessions` | Maksimum total login harian user. | Ketergantungan aktivitas login harian. |
+| `max_acc_ip` | `login_sessions` | Maksimal pengguna masuk dari satu alamat IP internet. | Markas komplotan pencari promo via satu koneksi Wi-Fi. |
 
 ### 6. Fitur Jaringan (Graph & Referral Features)
 | Nama Fitur | Asal Tabel Mentah | Deskripsi Singkat | Kasus Fraud yang Dideteksi |
 | :--- | :--- | :--- | :--- |
 | `referral_ring_score` | `referrals` | Deteksi jika rantai pengundang melingkar (A->B->C->A). | *Referral fraud* terorganisir pencair hadiah saldo. |
-| `graph_cluster_size` | Semua Relasional | Ukuran total klaster jika akun-akun terhubung satu sama lain. | Menilai skala ancaman sindikat secara makro (Big Fraud). |
+| `cluster`, `comp_size`, `degree` | Semua Relasional | Ukuran ego-network, komponen, dan jumlah koneksi user di graph. | Menilai skala ancaman sindikat secara makro (Big Fraud). |
 
 </details>
 
 ### 🔍 Bedah Resep: Bagaimana Fitur ABT Dibuat dari Tabel Mentah?
 Untuk memberikan gambaran konkret *Feature Engineering*, berikut adalah rumusan dari 3 fitur utama:
 
-1. **Fitur `promo_order_ratio` (Skenario Fraud: *Voucher Farming / Promo Hunting*)**
+1. **Fitur `promo_ratio` (Skenario Fraud: *Voucher Farming / Promo Hunting*)**
    * **Tabel yang Digabung:** Tabel `transactions` JOIN dengan `vouchers`.
    * **Proses / Rumus:** Menghitung total transaksi milik seorang pengguna yang `voucher_id`-nya terisi, lalu dibagi dengan total seluruh transaksinya.
    * **Menghasilkan:** Persentase (0% - 100%). Akun palsu pencari promo umumnya memiliki rasio di atas 90%.
 
-2. **Fitur `accounts_per_device_max` (Skenario Fraud: *Shared Device Abuse*)**
+2. **Fitur `max_acc_dev` (Skenario Fraud: *Shared Device Abuse*)**
    * **Tabel yang Digabung:** Tabel `users` JOIN dengan `user_devices`.
    * **Proses / Rumus:** Dikelompokkan berdasarkan perangkat (`GROUP BY device_id`), dihitung jumlah `user_id` uniknya, lalu diambil angka maksimal untuk pengguna tersebut.
    * **Menghasilkan:** Angka bulat (contoh: 15 akun). Jika 1 HP fisik dipakai oleh 15 akun berbeda, otomatis terdeteksi sebagai anomali.
 
-3. **Fitur `signup_to_first_txn_minutes` (Skenario Fraud: *Bot Eksekusi Instan*)**
+3. **Fitur `reg2txn_min` (Skenario Fraud: *Bot Eksekusi Instan*)**
    * **Tabel yang Digabung:** Tabel `users` JOIN dengan `transactions`.
    * **Proses / Rumus:** Mencari waktu transaksi pertama (`MIN(transaction_date)`), kemudian dikurangi dengan waktu pendaftaran (`registration_date`).
    * **Menghasilkan:** Durasi dalam satuan menit. Bot otomatis biasanya memiliki jeda kurang dari 5 menit tanpa melakukan *browsing* produk secara wajar layaknya manusia.
@@ -170,11 +177,11 @@ Untuk memberikan gambaran konkret *Feature Engineering*, berikut adalah rumusan 
 ---
 
 *Untuk presentasi, berikut adalah **Top 5 Fitur Paling Signifikan (Feature Importance)**:*
-1.  **`promo_order_ratio`**: Rasio pemakaian voucher (Akun palsu umumnya memiliki rasio > 90%).
-2.  **`accounts_per_device_max`**: Jumlah akun maksimal dalam satu perangkat HP fisik.
-3.  **`email_randomness_score`**: Tingkat keacakan email (Bot generator sering menggunakan *entropy* tinggi).
-4.  **`signup_to_first_transaction_minutes`**: Waktu jeda pendaftaran ke transaksi pertama (< 5 menit sangat mencurigakan).
-5.  **`graph_connected_component_size`**: Ukuran jaringan sindikat (Berapa banyak akun yang saling terhubung).
+1.  **`shared_ip_count`**: Jumlah koneksi berbagi IP yang terdeteksi di graph.
+2.  **`max_acc_ip`**: Jumlah akun maksimum yang berbagi IP.
+3.  **`comp_size`**: Ukuran komponen jaringan tempat user berada.
+4.  **`shared_payment_count`**: Jumlah koneksi berbagi metode pembayaran.
+5.  **`reg2txn_min`**: Waktu jeda pendaftaran ke transaksi pertama.
 
 ---
 
@@ -252,7 +259,7 @@ Layanan backend dibangun dengan FastAPI untuk melayani dashboard admin secara *r
     *   *Fungsi:* Melakukan inference ML pada profil user tertentu atau menerima payload fitur manual.
     *   *Request Payload:*
         ```json
-        { "accounts_per_device_max": 8, "promo_order_ratio": 0.95, "accounts_per_ip_max": 4 }
+        { "max_acc_dev": 8, "promo_ratio": 0.95, "max_acc_ip": 4 }
         ```
     *   *Response Payload:*
         ```json

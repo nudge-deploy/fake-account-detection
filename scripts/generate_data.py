@@ -189,7 +189,7 @@ FRAUD_HOUR_WEIGHTS = [
 # Persona login dibuat supaya fitur login frequency berbasis bucket harian
 # seperti 00:00-01:00, 00:00-02:00, ..., 00:00-24:00 bisa menghasilkan nilai 0.
 # Contoh user yang login jam 07:00, 12:00, 18:00:
-# login_f1h=0, login_f6h=0, login_f12h=2, login_f18h=3, login_f24h=3.
+# login_v1h=0, login_v6h=0, login_v12h=2, login_v18h=3, login_v24h=3.
 LOGIN_PERSONA_HOUR_WEIGHTS = {
     # Normal user yang mayoritas baru aktif pagi-siang-malam.
     # Hampir tidak ada login 00-05 sehingga bucket awal bisa 0.

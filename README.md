@@ -1,5 +1,3 @@
-# Fake Account Detection Retail App Prototype
-
 <!--
 Purpose: Project overview and local development workflow.
 Used by: Developers running the data, backend, and frontend pipeline.
@@ -7,6 +5,8 @@ Main dependencies: Python scripts, FastAPI backend, Next.js frontend, Supabase s
 Public/main functions: N/A documentation only.
 Side effects: None.
 -->
+
+# Fake Account Detection Retail App Prototype
 
 ## Objective
 To build a prototype machine learning and rule-based hybrid system capable of detecting fake accounts, voucher abusers, and organized fraud rings in a mobile retail e-commerce ecosystem.
@@ -43,31 +43,35 @@ The dataset simulates 10,000 user accounts with features distributed across mult
 - `users.csv`: Core identity (Email, Phone, Registration).
 - `devices.csv`, `addresses.csv`, `payments.csv`: Connected physical and financial entities.
 - `transactions.csv`, `vouchers.csv`: E-commerce purchasing activity.
-- `login_sessions.csv`: Login velocity, persona timing, and network IP activity.
+- `login_sessions.csv`: Login frequency buckets from 00:00, persona timing, and network IP activity.
 - `referrals.csv`: Referral chains and cyclical rings.
 - `fraud_labels.csv`: Ground truth labels for supervised learning.
 
-## How to Generate Synthetic Data
 ## Running the Full Pipeline
 
-If you want to regenerate all artifacts from scratch:
+If you want to regenerate all artifacts from scratch, keep this order. The ABT is the final training table and contains raw-derived features plus per-user aggregate graph features.
 
 ```bash
 # 1. Generate Raw Data
 python scripts/generate_data.py
 
-# 2. Extract Graph Features
+# 2. Generate Graph CSV for feature extraction
 python scripts/build_graph.py
+
+# 3. Extract Graph Features
 python scripts/extract_graph_features.py
 
-# 3. Build ABT
+# 4. Build final ABT
 python scripts/build_abt.py
 
-# 4. Generate JSON for API/Frontend
+# 5. Generate Graph JSON for API/Frontend
 python scripts/export_graph_api.py
 
-# 5. Train Model
+# 6. Train Model
 python scripts/train_model.py
+
+# 7. Upload current CSV/ABT data to Supabase
+python scripts/upload_to_supabase.py
 ```
 
 ## How to Train Model
@@ -116,6 +120,10 @@ Available REST Endpoints:
 - `GET /api/graph` : Fetch network visualization data.
 - `POST /api/chat` : Chatbot interface.
 
+## Data Lineage Documentation
+For the full relation between source tables, joins, feature outputs, graph outputs, and abbreviation meanings, see:
+- `docs/Feature_Source_Join_Mapping.md`
+
 ## Example Inference
 You can test the manual prediction endpoint using `curl` or Postman:
 ```bash
@@ -127,8 +135,8 @@ curl -X POST "http://localhost:8000/api/predict" \
              "max_acc_pay": 3,
              "max_acc_addr": 5,
              "promo_ratio": 0.9,
-             "login_f1h": 5,
-             "login_f24h": 20,
+             "login_v1h": 5,
+             "login_v24h": 20,
              "reg2txn_min": 10
            }
          }'

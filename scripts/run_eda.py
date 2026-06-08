@@ -106,7 +106,7 @@ plt.close()
 # 6. Correlation Heatmap
 numeric_cols = [
     'max_acc_dev', 'max_acc_addr', 'max_acc_pay', 'max_acc_ip',
-    'login_f24h', 'email_len', 'email_num_ratio', 'email_rand', 'phone_score',
+    'login_v24h', 'email_len', 'email_num_ratio', 'email_rand', 'phone_score',
     'degree', 'cluster', 'comp_size', 'shared_ent', 'shared_ip_count', 'fraud'
 ]
 

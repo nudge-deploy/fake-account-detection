@@ -1,3 +1,11 @@
+<!--
+Purpose: Capture business context and fraud abuse scenarios in a retail mobile app.
+Used by: Reviewers understanding why the synthetic data and detection features exist.
+Main dependencies: Project business assumptions and fraud scenario taxonomy.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 # Mobile App Exploration
 
 ## Application Name

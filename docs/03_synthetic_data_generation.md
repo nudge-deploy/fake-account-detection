@@ -1,3 +1,11 @@
+<!--
+Purpose: Document the synthetic data generator, fraud personas, and upload workflow.
+Used by: Developers regenerating raw CSVs and Supabase seed data.
+Main dependencies: scripts/generate_data.py, scripts/upload_to_supabase.py, database_schema.sql.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 # Synthetic Data Generation Documentation
 
 This document describes the design, implementation, and output statistics of the synthetic data generation engine for the Fake Account Detection Retail App Prototype.
@@ -18,16 +26,16 @@ Below is the summary of the generated dataset:
 | Table Name | Output Count (Target) | Output Count (Actual) | Notes / Columns |
 | :--- | :--- | :--- | :--- |
 | **users** | 10,000 | 10,000 | Indonesian names, localized phone numbers, registration dates, demographics. |
-| **devices** | 7,000 | 7,000 | Operating systems, app versions, emulator status, jailbreak/rooted status. |
+| **devices** | 7,000 | 7,000 | Device fingerprints, device type, operating systems, app versions, and first/last seen timestamps. |
 | **user_devices** | — | 10,922 | Maps device interactions and login timestamps. |
-| **addresses** | 8,000 | 8,000 | Physical shipping address, coordinates, and similarity clustering. |
+| **addresses** | 8,000 | 8,000 | Physical shipping address, city/province, postal code, and coordinates. |
 | **user_addresses** | — | 10,000 | Maps shipping addresses to user profiles. |
 | **payments** | 9,000 | 9,000 | Payment types (ewallet, bank transfer, CC), providers, and tokens. |
 | **user_payments** | — | 10,000 | Links user payment profiles. |
 | **vouchers** | 500 | 500 | Discount types, new user promo vouchers, max limits. |
 | **transactions** | 50,000 | 50,000 | Simulates checkouts, voucher usage, and delivery states. |
 | **transaction_items**| — | 116,634 | Line items per transaction including unit prices and quantities. |
-| **login_sessions** | 100,000 | 100,005 | IP logs, VPN/proxy detection, session duration, and geo-locations. |
+| **login_sessions** | 100,000 | 100,000 | IP logs, login persona, session duration, and geo-locations. |
 | **referrals** | — | 1,499 | User-to-user referral tree structures. |
 | **fraud_labels** | 10,000 | 10,000 | Binary target label (`is_fake_account`), fraud reason, and classification type. |
 
@@ -37,7 +45,7 @@ Below is the summary of the generated dataset:
 
 ## Simulated Fraud Scenarios
 
-Based on the mobile app exploration, 11 potential fraud points were identified (Promo Abuse, A-Poin Farming, Refund Abuse, etc.). For the purpose of this dataset and modeling, these have been abstracted and synthesized into **six core simulated fraud behaviors** that capture the fundamental data anomalies (shared entities, high velocity, and relational graphs) common to all those scenarios:
+Based on the mobile app exploration, 11 potential fraud points were identified (Promo Abuse, A-Poin Farming, Refund Abuse, etc.). For the purpose of this dataset and modeling, these have been abstracted and synthesized into **six core simulated fraud behaviors** that capture the fundamental data anomalies (shared entities, high login frequency, and relational graphs) common to all those scenarios:
 
 ### 1. Shared Device Abuse
 - **Description:** A single physical device fingerprint is linked to a large number of accounts.
@@ -64,9 +72,9 @@ Based on the mobile app exploration, 11 potential fraud points were identified (
 - **Simulation Pattern:** A tree structure of referrals is created where User A refers users B, C, D, E; User B then refers F, G, H, etc., with connections via shared login IPs or fingerprints.
 - **Target Count:** ~500 users.
 
-### 6. Emulator Abuse
-- **Description:** Professional fraud rings utilizing device emulators and virtual environments to create accounts.
-- **Simulation Pattern:** Accounts log in consistently from devices flagged as `is_emulator = True` and `is_rooted = True` using proxy IPs or shared local local-network subnets (e.g., `192.168.1.100` to `192.168.1.105`).
+### 6. Coordinated Login Persona Abuse
+- **Description:** Professional fraud rings that create account clusters with synchronized login behavior and shared infrastructure patterns.
+- **Simulation Pattern:** Accounts reuse devices, addresses, payments, or IP pools and are assigned `login_persona` patterns that create suspicious frequency buckets from `00:00` and graph-sharing signals.
 - **Target Count:** ~500 users.
 
 > [!NOTE]
@@ -85,11 +93,11 @@ python scripts/generate_data.py
 This writes the CSV files to `data/raw/`.
 
 ### Uploading to Supabase
-If you want to sync the generated raw CSVs to your Supabase tables:
+If you want to sync the generated raw CSVs and final ABT to your Supabase tables:
 1. Ensure your database tables have been set up via `database_schema.sql`.
 2. Configure `.env` with your active `SUPABASE_URL` and `SUPABASE_KEY`.
 3. Run the uploader:
 ```bash
 python scripts/upload_to_supabase.py
 ```
-*Note: The upload script automatically chunks operations (batch size = 500) to respect rate limits and handles missing values (`NaN`) gracefully.*
+*Note: The upload script automatically chunks operations (batch size = 500) to respect rate limits and converts missing values (`NaN`) to JSON `null`.*

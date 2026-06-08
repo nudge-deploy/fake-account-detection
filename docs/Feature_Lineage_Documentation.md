@@ -1,3 +1,11 @@
+<!--
+Purpose: Trace data lineage from synthetic generation through graph features, ABT, model, API, and dashboard.
+Used by: Developers and reviewers auditing end-to-end data consistency.
+Main dependencies: generate_data.py, generate_graph_data.py, extract_graph_features.py, build_abt.py, train_model.py.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 # Feature Lineage: Kisah Penjahitan Data (Data Weaving Story)
 
 Dokumen ini tidak sekadar berisi daftar teknis, melainkan menceritakan "alur jahit" bagaimana data mentah (raw) dipintal, diekstrak, hingga membentuk **Analytics Base Table (ABT)** yang menjadi bahan bakar utama bagi otak kecerdasan buatan (Machine Learning).
@@ -14,7 +22,7 @@ Dokumen ini tidak sekadar berisi daftar teknis, melainkan menceritakan "alur jah
               │
               ▼
 [ 2. GRAPH EXTRACTION ]
-(build_graph.py & extract_graph_features.py)
+(generate_graph_data.py --mode csv & extract_graph_features.py)
               │
               ├──▶ graph_nodes.csv & graph_edges.csv
               └──▶ user_graph_features.csv (Metrics)
@@ -38,7 +46,7 @@ Dokumen ini tidak sekadar berisi daftar teknis, melainkan menceritakan "alur jah
               └──▶ (alur ke UI)
                       ▼
                  [ 5. API & DASHBOARD ]
-                 (export_graph_api.py & FastAPI)
+                 (generate_graph_data.py --mode api & FastAPI)
                       │
                       └──▶ graph_nodes.json & edges.json
 ```
@@ -50,10 +58,10 @@ Jika dijabarkan ke dalam bentuk matriks (kolom), aliran kerja dari hulu ke hilir
 | Fase | Aktor (Script Utama) | Sumber Data (Input) | Hasil Akhir (Output) | Tujuan Utama |
 | :--- | :--- | :--- | :--- | :--- |
 | **1. Fase Simulasi & Penciptaan Data** *(Data Generation)* | `generate_data.py` | *(Simulator Internal)* | `users.csv`, `transactions.csv`, `login_sessions.csv`, `devices.csv`, `addresses.csv`, `payments.csv`, `vouchers.csv`, `user_devices.csv`, `user_addresses.csv`, `user_payments.csv` | Menciptakan puluhan ribu baris data relasional yang mensimulasikan pola pengguna normal (logis) serta pola sindikat penipu (berbagi *device*, *burst login* massal). |
-| **2. Fase Pemetaan Jaring Sindikat** *(Graph Extraction)* | `build_graph.py` & `extract_graph_features.py` | `user_devices.csv`, `user_addresses.csv`, `user_payments.csv`, `login_sessions.csv` | `graph_nodes.csv` (Titik entitas), `graph_edges.csv` (Garis koneksi), `user_graph_features.csv` (Metrik numerik spt `graph_cluster_size`) | Memetakan jaringan persekongkolan tak kasat mata melalui alat yang dipakai bersama, lalu mengonversinya menjadi metrik *Graph Theory* untuk tiap pengguna. |
-| **3. Fase Perakitan Fitur Cerdas** *(Feature Eng. & ABT)* | `build_abt.py` | Seluruh *Raw CSV* (Tahap 1) & `user_graph_features.csv` (Tahap 2) | `fake_account_abt.csv` (Analytics Base Table) | Menggabungkan fitur identitas, metrik graf, serta menghitung metrik kecepatan waktu (*velocity* spt `login_f24h`, `txn_velocity`) ke dalam satu tabel datar (*flattened table*) siap latih. |
+| **2. Fase Pemetaan Jaring Sindikat** *(Graph Extraction)* | `generate_graph_data.py --mode csv` & `extract_graph_features.py` | `user_devices.csv`, `user_addresses.csv`, `user_payments.csv`, `login_sessions.csv` | `graph_nodes.csv` (Titik entitas), `graph_edges.csv` (Garis koneksi), `user_graph_features.csv` (Metrik numerik spt `graph_cluster_size`) | Memetakan jaringan persekongkolan tak kasat mata melalui alat yang dipakai bersama, lalu mengonversinya menjadi metrik *Graph Theory* untuk tiap pengguna. |
+| **3. Fase Perakitan Fitur Cerdas** *(Feature Eng. & ABT)* | `build_abt.py` | Seluruh *Raw CSV* (Tahap 1) & `user_graph_features.csv` (Tahap 2) | `fake_account_abt.csv` (Analytics Base Table) | Menggabungkan fitur identitas, metrik graf, bucket frekuensi login harian (`login_v*`), dan metrik transaksi bulanan ke dalam satu tabel datar (*flattened table*) siap latih. |
 | **4. Fase Ruang Belajar AI** *(Model Training & Inference)* | `train_model.py` & `run_inference.py` | `fake_account_abt.csv` | `fake_account_model.pkl` (Otak AI) beserta `feature_columns.json` (Daftar urutan input) | Memisahkan data latih/uji, melatih algoritma (XGBoost, RF), menyeleksi fitur paling penting, dan menciptakan mesin AI pendeteksi *fraud* otonom. |
-| **5. Fase Ekspor Visual & API** *(Dashboard Integration)* | `export_graph_api.py` & FastAPI | `fake_account_abt.csv`, `graph_nodes.csv`, `graph_edges.csv`, model `.pkl` | `graph_nodes.json`, `graph_edges.json`, & Endpoint REST API `/api/fraud/predict` | Menerjemahkan hasil deteksi AI dan struktur graf menjadi JSON visual (*Frontend*) agar tim investigator bisa melihat jaring laba-laba sindikat secara langsung (*Real-Time*). |
+| **5. Fase Ekspor Visual & API** *(Dashboard Integration)* | `generate_graph_data.py --mode api` & FastAPI | `fake_account_abt.csv`, `graph_nodes.csv`, `graph_edges.csv`, model `.pkl` | `graph_nodes.json`, `graph_edges.json`, & Endpoint REST API `/api/graph` | Menerjemahkan hasil deteksi AI dan struktur graf menjadi JSON visual (*Frontend*) agar tim investigator bisa melihat jaringan sindikat secara langsung. |
 
 ---
 
@@ -68,15 +76,15 @@ Semuanya bermula dari *Simulator* yang menciptakan alam semesta berisiko ini. Sk
 ---
 
 ## 🕸️ 2. Fase Pemetaan Jaring Sindikat (Graph Extraction)
-**Aktor:** `scripts/build_graph.py` & `scripts/extract_graph_features.py`
+**Aktor:** `scripts/generate_graph_data.py --mode csv` & `scripts/extract_graph_features.py`
 
 Sebelum data dihitung secara tradisional, kita mengekstrak pola "tak kasat mata" dari data relasional tersebut menggunakan Ilmu Graf (*Graph Theory*):
-*   **Penciptaan Node & Edge:** Skrip `build_graph.py` membaca file *junction* dari folder `data/raw/` (seperti `user_devices.csv`, `user_payments.csv`, dan IP dari `login_sessions.csv`). Skrip ini kemudian mengubahnya menjadi format baku graf: `graph_nodes.csv` (Daftar titik/entitas) dan `graph_edges.csv` (Garis penghubung antar titik).
+*   **Penciptaan Node & Edge:** Skrip `generate_graph_data.py --mode csv` membaca file *junction* dari folder `data/raw/` (seperti `user_devices.csv`, `user_payments.csv`, dan IP dari `login_sessions.csv`). Skrip ini kemudian mengubahnya menjadi format baku graf: `graph_nodes.csv` (Daftar titik/entitas) dan `graph_edges.csv` (Garis penghubung antar titik).
 *   **Bipartite Graph & Projection:** Skrip `extract_graph_features.py` kemudian mengambil file *nodes* dan *edges* tersebut untuk membangun **Bipartite Graph** (Grafik Dua Sisi) untuk menghubungkan User <-> Alat.
 *   Lalu dikonversi menjadi **User-to-User Graph**. Jika Budi dan Andi sama-sama pernah login dari HP Xiaomi yang sama, mereka otomatis ditarik garis merah (terkoneksi).
 *   **Hasil:** Skrip ekstrak akan menghasilkan file `data/processed/user_graph_features.csv` yang berisi fitur struktural murni (seperti ukuran komplotan dan kepadatan irisan).
 
-> *Catatan Tambahan: Di akhir proses (Fase 5), ada skrip penutup bernama `export_graph_api.py` yang akan dipanggil untuk menerjemahkan hasil graf ini ke dalam bentuk JSON visual agar bisa dibaca oleh Frontend.*
+> *Catatan Tambahan: Di akhir proses (Fase 5), mode `generate_graph_data.py --mode api` dipanggil setelah ABT selesai agar `graph_nodes.json` berisi metadata user terbaru seperti `risk_score`, `risk_category`, dan `ftype`.*
 
 ---
 
@@ -204,9 +212,9 @@ Diambil dari penyatuan tabel **`transactions.csv`**, **`vouchers.csv`**, dan **`
 *   **`reg2txn_min`**: Selisih waktu (dalam satuan menit) yang diambil dengan cara mengurangi `transaction_date` paling pertama di `transactions.csv` dengan `registration_date` milik pengguna di `users.csv`. Semakin cepat waktunya, semakin mirip *bot*.
 *   **`txn_f1m` hingga `txn_f6m`**: Fitur *Rolling Window* yang menyaring baris `transactions.csv` milik *user*. Ia menghitung jumlah order (`txn`), nilai rupiahnya (`amt`), dan nilai diskonnya (`promo`) secara mundur ke belakang untuk jendela 1 hingga 6 bulan.
 
-### D. Fitur Frekuensi & Kepadatan Login (Velocity)
+### D. Fitur Frekuensi Login Harian
 Diambil murni dari tabel **`login_sessions.csv`**.
-*   **`login_f1h` hingga `login_f24h`**: *Velocity Metrics*. Menghitung berapa total baris log aktivitas milik *user* tersebut pada rentang 1, 6, 12, hingga 24 jam terakhir dari detik maksimum saat ini. Targetnya membongkar penipu *burst-login* yang *farming* di tengah malam.
+*   **`login_v1h` hingga `login_v24h`**: *Daily login frequency buckets*. Menghitung maksimum jumlah login user dari jam `00:00` sampai batas jam tertentu pada hari tersibuknya. Contoh: `login_v1h` menghitung login dari `00:00` sampai `01:00`; `login_v24h` menghitung maksimum total login harian user.
 *   **`max_acc_ip`**: Membalik sudut pandang. Dikelompokkan berdasarkan `ip_address`, lalu dihitung jumlah unik `user_id` yang masuk ke IP itu. Kemudian nilainya ditempelkan kembali ke setiap *user*.
 
 ### E. Fitur Jaringan Jauh (Macro Graph Features)
@@ -215,7 +223,7 @@ Diambil dari hasil karya skrip Fase 2 yaitu **`user_graph_features.csv`**.
 *   **`comp_size`**: Ukuran *Connected Component*. Jika ada 500 akun yang diam-diam terhubung secara berantai lewat alat bayar dan alamat pengiriman berlapis, angkanya akan meledak menjadi 500. Fitur ini paling ditakuti oleh sindikat pabrik akun.
 *   **`shared_ip_count`**: Mengkalkulasi akumulasi jumlah irisan IP antara *user* tersebut dengan seluruh lingkaran teman-teman terdekatnya (*neighbors* di dalam Graf).
 
-**Hasil:** Master Table raksasa bernama `data/abt/fake_account_abt.csv`. Di tabel inilah, satu pengguna direpresentasikan oleh **1 Baris dengan 64 Kolom Fitur (Indikator)**.
+**Hasil:** Master Table raksasa bernama `data/abt/fake_account_abt.csv`. Di tabel inilah, satu pengguna direpresentasikan oleh **1 Baris dengan 69 Kolom Total**: 64 kolom fitur model dan 5 kolom metadata/label (`uid`, `fraud`, `ftype`, `risk_score`, `risk_cat`).
 
 ---
 

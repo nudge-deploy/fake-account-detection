@@ -1,6 +1,14 @@
+<!--
+Purpose: Summarize exploratory data analysis on raw tables and the final ABT.
+Used by: Reviewers validating synthetic data realism and fraud separability.
+Main dependencies: generated raw CSVs, fake_account_abt.csv, docs/images EDA outputs.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 # Exploratory Data Analysis (EDA) Report
 
-This report summarizes the results of the Exploratory Data Analysis performed on the raw dimension tables and the compiled Analytics Base Table (ABT) for the Fake Account Detection Prototype.
+This report summarizes the results of the Exploratory Data Analysis performed on the raw dimension tables and the compiled Analytics Base Table (ABT) for the Fake Account Detection Prototype. The final ABT contains raw-derived features plus graph aggregate features.
 
 ---
 
@@ -63,29 +71,22 @@ Legitimate user transactions are distributed normally over the 6-month observati
 ## 5. Feature Correlation Analysis
 A correlation heatmap was calculated for the primary engineered features against the target label `is_fake_account`:
 - **Strongest Positive Correlations:**
-  - `days_since_last_login` (+0.34)
-  - `login_count` (+0.25)
-  - `login_velocity_24h` (+0.23)
-  - `unique_ip_addresses` (+0.21)
-  - `promo_order_ratio` (+0.20)
-  - `new_user_voucher_usage` (+0.16)
-  - `vpn_login_ratio` (+0.15)
+  - `login_v24h`
+  - `max_acc_ip`
+  - `promo_ratio`
+  - `newuser_voucher`
+  - `shared_ip_count`
 - **Strongest Negative Correlations:**
-  - `accounts_per_ip_max` (-0.46)
-  - `connected_component_size` (-0.38)
-  - `accounts_per_device_max` (-0.34)
-  - `shared_entity_count` (-0.28)
-  - `graph_degree` (-0.27)
-  - `graph_cluster_size` (-0.27)
-  - `unique_devices` (-0.25)
-  - `total_order_amount` (-0.25)
-  - `accounts_per_address_max` (-0.25)
-  - `avg_order_amount` (-0.20)
-  - `total_transactions` (-0.15)
+  - `comp_size`
+  - `degree`
+  - `cluster`
+  - `shared_ent`
+  - `max_acc_dev`
+  - `max_acc_addr`
 
 > [!NOTE]
 > **Interpretation of Negative Correlations:**
-> In this regenerated dataset with realistic noise, normal users (which constitute 70% of the dataset) are naturally constrained to a small set of residential/home IP addresses (simulating real residential areas). This causes massive legitimate IP sharing and high connectivity in the shared-entity graph, leading to large values for `accounts_per_ip_max`, `connected_component_size`, and graph metrics for standard accounts. Conversely, fake accounts utilize highly distributed datacenter IPs, proxies, and VPNs, resulting in significantly lower IP sharing rates and smaller graph degree/cluster sizes, creating strong negative correlations with the fraud label.
+> In this regenerated dataset with realistic noise, normal users (which constitute 70% of the dataset) can share residential/home IP ranges and legitimate household entities. This can produce high values in `max_acc_ip`, `comp_size`, and graph metrics for standard accounts. Fraud clusters are therefore evaluated through combined evidence rather than a single shared-entity signal.
 
 
 ![Correlation Heatmap](file:///d:/magang/fraud%20detection%20&%20abuse/docs/images/correlation_heatmap.png)

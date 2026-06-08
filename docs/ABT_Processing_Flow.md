@@ -1,3 +1,11 @@
+<!--
+Purpose: Explain how raw relational tables and graph aggregates become the final ABT.
+Used by: Developers and reviewers tracing feature engineering logic.
+Main dependencies: scripts/build_abt.py, scripts/generate_graph_data.py, scripts/extract_graph_features.py.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 # 🌊 Cara Tabel Mentah Diolah Menjadi ABT
 
 Dokumen ini menjelaskan **bagaimana persisnya logika perhitungan (manipulasi baris dan kolom)** yang dikenakan pada setiap tabel mentah Anda untuk menghasilkan fitur-fitur pendeteksi *fraud* di dalam **Analytics Base Table (ABT)**.
@@ -29,7 +37,7 @@ flowchart TD
     F_Id[Fitur Identitas<br/>email_rand, phone_score]
     F_Junc[Fitur Aset<br/>max_acc_dev, max_acc_addr]
     F_Trans[Fitur Transaksi<br/>reg2txn_min, txn_f1m]
-    F_Login[Fitur Kecepatan<br/>login_f1h, max_acc_ip]
+    F_Login[Fitur Frekuensi Login<br/>login_v1h, max_acc_ip]
     F_Graph[Fitur Makro Graf<br/>graph_degree, comp_size]
 
     %% Flow
@@ -49,7 +57,7 @@ flowchart TD
     F_Graph --> Merge
 
     %% Output
-    Out([fake_account_abt.csv <br/> 1 Baris = 1 Pengguna = 64 Fitur])
+    Out([fake_account_abt.csv <br/> 1 Baris = 1 Pengguna = 69 Kolom Total<br/>64 Fitur Model + 5 Metadata/Label])
     Merge ===> Out
     
     %% Styling
@@ -85,13 +93,13 @@ Pola belanja penipu sangat berbeda dengan pengguna organik. Penipu biasanya lang
 *   **Perhitungan Promosi (`promo_ratio`):** Menghitung rasio berapa kali kolom `voucher_id` tidak kosong dibandingkan total seluruh transaksinya.
 
 ### 4. Pengolahan Tabel Aktivitas (`login_sessions.csv`)
-*Bot* penipu dijalankan oleh skrip otomatis yang menyebabkan ratusan *login* terjadi dalam hitungan jam (biasanya tengah malam).
-*   **Manipulasi Velocity:** Menggunakan fungsi jendela waktu (*Time Windowing*) untuk memfilter cap waktu `login_timestamp`.
-*   **Perhitungan Kecepatan (`login_f1h`, `login_f24h`):** Menghitung agregasi jumlah baris sesi *login* dari pengguna tersebut murni hanya untuk 1 jam, 6 jam, 12 jam, dan 24 jam terakhir. Jika skor `login_f1h`-nya meledak tak wajar, ini adalah indikasi sindikat *farming*.
+*Bot* penipu dijalankan oleh skrip otomatis yang menyebabkan banyak *login* terjadi pada bucket jam tertentu, terutama setelah tengah malam.
+*   **Manipulasi Frekuensi Harian:** Mengubah `login_timestamp` menjadi jam sejak `00:00`, lalu menghitung jumlah login dari awal hari sampai batas jam tertentu.
+*   **Perhitungan Frekuensi (`login_v1h`, `login_v24h`):** `login_v1h` adalah maksimum jumlah login user dari `00:00` sampai `01:00` pada salah satu hari. `login_v24h` adalah maksimum total login harian user. Bucket lain (`login_v2h`, `login_v6h`, `login_v12h`, `login_v18h`) mengikuti pola yang sama.
 *   **Manipulasi IP:** Sama seperti perangkat, kita melakukan *Group-By* terhadap `ip_address` untuk melihat berapa akun yang *login* dari IP Wi-Fi yang persis sama (`max_acc_ip`).
 
 ### 5. Pengolahan Tabel Relasi Jaringan (`user_graph_features.csv`)
-Fitur ini dihitung terlebih dahulu oleh `build_graph.py` menggunakan Ilmu Graf (NetworkX).
+Fitur ini dihitung terlebih dahulu dari `graph_nodes.csv` dan `graph_edges.csv` yang dibuat oleh `generate_graph_data.py --mode csv`, lalu diringkas oleh `extract_graph_features.py` menggunakan Ilmu Graf (NetworkX).
 *   **Manipulasi Eksternal:** Mengubah tabel *junction* menjadi garis-garis koneksi (*Bipartite Graph*), lalu memproyeksikannya menjadi jaringan murni antar-manusia (*User-to-User*).
 *   **Perhitungan Graf:**
     *   **Degree (`graph_degree`):** Menghitung berapa banyak akun lain yang terhubung secara fisik (lewat alat/alamat yang sama) dengan pengguna ini.

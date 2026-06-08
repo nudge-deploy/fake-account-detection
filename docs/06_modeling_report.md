@@ -1,3 +1,11 @@
+<!--
+Purpose: Summarize model training, evaluation metrics, and leakage controls.
+Used by: Reviewers validating model quality and training assumptions.
+Main dependencies: fake_account_abt.csv, feature_columns.json, fake_account_model.pkl.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 # Laporan Pemodelan Machine Learning & Evaluasi XGBoost
 
 Laporan ini merangkum *pipeline* klasifikasi Machine Learning **setelah dilakukannya perbaikan arsitektur data** dan penggabungan dengan fitur *Bipartite Graph Projection*. Seluruh fitur yang rentan membocorkan data masa depan (seperti agregasi `max_acc_ip` dan fitur jaringan graf) telah dihitung ulang khusus menggunakan data *training* untuk mencegah *Data Leakage*.
@@ -6,7 +14,7 @@ Laporan ini merangkum *pipeline* klasifikasi Machine Learning **setelah dilakuka
 
 ## 1. Metodologi & Pembagian Dataset
 
-- **Dataset Utama:** Analytics Base Table (`fake_account_abt.csv`) digabungkan dengan Graph Features (`user_graph_features.csv`).
+- **Dataset Utama:** Analytics Base Table final (`fake_account_abt.csv`) yang sudah mencakup fitur turunan raw data dan fitur agregat graph dari `user_graph_features.csv`.
 - **Total Baris:** 10.000 pengguna.
 - **Total Kolom Fitur:** 64 Fitur Terpilih (Setelah seleksi fitur dan pembuangan label seperti `risk_score`).
 - **Split Configuration:** **70% Training** (7.000 pengguna) dan **30% Testing** (3.000 pengguna), distratifikasi agar seimbang.
@@ -23,16 +31,16 @@ Performa model diukur pada 3.000 data tes yang benar-benar buta (belum pernah di
 | **Accuracy** | 91.03% | 91.40% | **94.63%** |
 | **Precision** | 82.22% | 95.72% | **96.01%** |
 | **Recall** | **89.44%** | 74.66% | **85.66%** |
-| **F1-Score** | 85.68% | 83.89% | **90.54%** |
-| **ROC-AUC** | 0.9699 | 0.9787 | **0.9898** |
+| **F1-Score** | 85.68% | 83.90% | **90.55%** |
+| **ROC-AUC** | 0.9699 | 0.9788 | **0.9899** |
 
-> **Kemenangan XGBoost:** XGBoost terbukti sangat superior dalam menangani data yang berpotensi *imbalanced* dan memiliki banyak fitur pohon (seperti *threshold login_velocity*). Dengan ROC-AUC nyaris sempurna (99%), XGBoost berhasil mengungguli Random Forest, terutama dalam aspek presisi (kemampuan untuk tidak salah menuduh/blokir pengguna asli) yang menembus angka 96.01%.
+> **Kemenangan XGBoost:** XGBoost terbukti sangat superior dalam menangani data yang berpotensi *imbalanced* dan memiliki banyak fitur pohon (seperti threshold pada bucket frekuensi login `login_v*`). Dengan ROC-AUC nyaris sempurna (99%), XGBoost berhasil mengungguli Random Forest, terutama dalam aspek presisi (kemampuan untuk tidak salah menuduh/blokir pengguna asli) yang menembus angka 96.01%.
 
 ---
 
 ## 3. Analisis Champion Model & Feature Importance
 
-- **Model Terpilih:** **XGBoost** (F1-Score: **0.9054**).
+- **Model Terpilih:** **XGBoost / Gradient Boosting fallback** (F1-Score: **0.9055**).
 - **Interpretasi Kinerja:** 
   Dari semua tebakan fraud (Fake Account) oleh XGBoost, 96% di antaranya adalah benar-benar penipu (*Precision sangat tinggi*). Ini menandakan bahwa model sudah siap untuk masuk ke tahap Produksi tanpa menyebabkan banyak komplain (*False Positives*) dari *customer* Alfagift. 
   
