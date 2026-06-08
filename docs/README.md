@@ -19,6 +19,7 @@ Dokumen utama project:
 | `06_modeling_report.md` | Ringkasan training, evaluasi model, dan artifact model. |
 | `07_system_architecture_and_api.md` | Arsitektur backend/frontend dan API. |
 | `ABT_Processing_Flow.md` | Urutan pemrosesan ABT dari raw data sampai fitur final. |
+| `Feature_Detection_Audit.md` | Audit apakah fitur benar-benar mendeteksi tiap skenario fraud. |
 | `Feature_Engineering_Documentation.md` | Definisi fitur dan logika feature engineering. |
 | `Feature_Lineage_Documentation.md` | Lineage fitur dari source menuju ABT/model. |
 | `Feature_Source_Join_Mapping.md` | Mapping source table, join/agregasi, output fitur, graph, dan daftar singkatan. |
