@@ -107,6 +107,15 @@ Available REST Endpoints:
 - `GET /api/graph` : Fetch network visualization data.
 - `POST /api/chat` : Chatbot interface.
 
+## Documentation Index
+The main documentation index lives in:
+- [docs/README.md](./docs/README.md)
+
+Useful deep-dive docs:
+- [docs/05_feature_engineering.md](./docs/05_feature_engineering.md)
+- [docs/feature_engineering_formulas.md](./docs/feature_engineering_formulas.md)
+- [docs/chatbot_query_data_source.md](./docs/chatbot_query_data_source.md)
+
 ## Example Inference
 You can test the manual prediction endpoint using `curl` or Postman:
 ```bash

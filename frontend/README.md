@@ -1,3 +1,11 @@
+<!--
+Purpose: Provide frontend development and run instructions for the Next.js app.
+Used by: Frontend developers and contributors working on the UI.
+Main dependencies: Next.js, npm packages, and frontend environment variables.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

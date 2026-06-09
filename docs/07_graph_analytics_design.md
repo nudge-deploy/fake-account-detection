@@ -1,3 +1,11 @@
+<!--
+Purpose: Explain graph analytics design, entity relationships, and fraud-ring detection logic.
+Used by: Developers, reviewers, and documentation readers for graph-based fraud analysis.
+Main dependencies: graph construction scripts, graph feature pipeline, and analytics outputs.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 # 07. Graph Analytics Design
 
 Dokumen ini menjelaskan arsitektur dan metodologi deteksi *Fraud Rings* (sindikat penipuan terorganisir) menggunakan analisis graf (*Network Analytics*).

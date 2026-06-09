@@ -1,3 +1,11 @@
+<!--
+Purpose: Document the hybrid chatbot architecture and fallback behavior.
+Used by: Developers, reviewers, and readers understanding chatbot responses.
+Main dependencies: backend chatbot service, LLM provider, regex/rule-based handlers.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 # 08. Chatbot Hybrid Architecture Design
 
 Aplikasi deteksi penipuan ini dilengkapi dengan Asisten AI (*Chatbot*) cerdas yang berfungsi membantu analis dalam membaca data fraud secara interaktif. Sistem chatbot ini dibangun menggunakan arsitektur **Hybrid** (LLaMA-3.1 + Regex Fallback).

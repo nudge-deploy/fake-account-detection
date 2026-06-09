@@ -1,3 +1,11 @@
+<!--
+Purpose: Describe project deployment steps for backend and frontend services.
+Used by: Developers and operators preparing local or cloud deployment.
+Main dependencies: FastAPI backend, Next.js frontend, environment variables, and runtime commands.
+Public/main functions: N/A documentation only.
+Side effects: None.
+-->
+
 # 10. Deployment Guide
 
 Aplikasi Fraud Detection V-TEKI dibangun dengan arsitektur terpisah (*Decoupled Architecture*) antara antarmuka pengguna (Frontend) dan server logika inti (Backend). Proses *deployment* direkomendasikan menggunakan dua platform Cloud gratis/PaaS untuk kemudahan dan keandalan tinggi.
