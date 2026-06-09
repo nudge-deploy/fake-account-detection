@@ -1,51 +1,41 @@
 <!--
-Purpose: Project overview and local development workflow.
-Used by: Developers running the data, backend, and frontend pipeline.
-Main dependencies: Python scripts, FastAPI backend, Next.js frontend, Supabase schema.
+Purpose: Main project entry point with overview, run instructions, and documentation links.
+Used by: Developers, reviewers, and contributors working on the fraud detection prototype.
+Main dependencies: Python scripts, FastAPI backend, Next.js frontend, Supabase, and model artifacts.
 Public/main functions: N/A documentation only.
 Side effects: None.
 -->
 
 # Fake Account Detection Retail App Prototype
 
-## Objective
-To build a prototype machine learning and rule-based hybrid system capable of detecting fake accounts, voucher abusers, and organized fraud rings in a mobile retail e-commerce ecosystem.
+Prototype ini menggabungkan synthetic data generation, graph analytics, machine learning, dan chatbot hybrid untuk mendeteksi fake account, voucher abuse, dan fraud ring di retail e-commerce mobile.
 
-## Features
-- **Synthetic Data Generation:** Simulates realistic e-commerce traffic and fraudulent behaviors.
-- **Graph Network Analytics:** Identifies shared entities (Fraud Rings) through NetworkX.
-- **Machine Learning Pipeline:** Trains predictive models (Logistic Regression, Random Forest, XGBoost).
-- **Dual-Layer Inference:** Combines ML Probabilities with Rule-Based Scoring logic.
-- **FastAPI Backend:** Serves high-performance REST endpoints and acts as an LLM bridge.
-- **Next.js Dashboard:** Premium dark-mode UI with Tailwind CSS and `react-force-graph-2d`.
-- **Hybrid AI Chatbot:** Utilizes LLaMA-3.1 (via Groq) for conversational analytics, with a fully functional Rule-Based/Regex fallback system.
-
-## Architecture
-- **Data Layer:** Python scripts generating raw CSVs and transforming them into an Analytical Base Table (ABT).
-- **Model Layer:** Scikit-learn algorithms coupled with standard scalers, exporting artifacts (`.pkl` and `.json`).
-- **Backend API:** Built on FastAPI (Python) for robust, async model inference and data serving.
-- **Frontend Dashboard:** Built on React and Next.js, handling state management, metrics display, and dynamic graph rendering.
+## Summary
+- **Data layer:** menghasilkan raw CSV dan ABT untuk training serta inference.
+- **Graph layer:** membangun relasi user-entity dan fitur graph untuk deteksi pola jaringan.
+- **Model layer:** melatih model ML dan menyimpan artefak `.pkl` / `.json`.
+- **Backend:** FastAPI untuk endpoint prediksi, graph, dan chatbot.
+- **Frontend:** Next.js dashboard untuk analisis risiko dan visualisasi graph.
 
 ## Folder Structure
 ```text
 .
-├── backend/            # FastAPI application and service logic
-├── data/               # Raw relational CSVs and generated datasets (ABT)
-├── docs/               # Documentation and analytical reports
-├── frontend/           # Next.js web application dashboard
-├── models/             # Trained machine learning model artifacts (.pkl, .json)
-├── notebooks/          # Jupyter notebooks for interactive analysis and EDA
-├── scripts/            # Python scripts for data generation and ML training
+|-- backend/     FastAPI app, services, and API routes
+|-- data/        Raw data, processed graph data, and ABT
+|-- docs/        Documentation and design notes
+|-- frontend/    Next.js dashboard
+|-- models/      Trained model artifacts and feature metadata
+|-- notebooks/   Analysis notebooks
+|-- scripts/     Data generation, feature engineering, graph, and training scripts
 ```
 
-## Dataset Description
-The dataset simulates 10,000 user accounts with features distributed across multiple tables:
-- `users.csv`: Core identity (Email, Phone, Registration).
-- `devices.csv`, `addresses.csv`, `payments.csv`: Connected physical and financial entities.
-- `transactions.csv`, `vouchers.csv`: E-commerce purchasing activity.
-- `login_sessions.csv`: Login frequency buckets from 00:00, persona timing, and network IP activity.
-- `referrals.csv`: Referral chains and cyclical rings.
-- `fraud_labels.csv`: Ground truth labels for supervised learning.
+## Data Sources
+- `users.csv`: identitas akun
+- `devices.csv`, `addresses.csv`, `payments.csv`: entity yang bisa dipakai bersama
+- `transactions.csv`, `vouchers.csv`: aktivitas transaksi dan voucher
+- `login_sessions.csv`: pola login dan frekuensi
+- `referrals.csv`: relasi referral dan siklus jaringan
+- `fraud_labels.csv`: label target untuk supervised learning
 
 ## How to Generate Synthetic Data
 To simulate a realistic retail environment with standard users and automated bot attacks, run the synthetic data generator script. This will populate the `data/raw/` folder with multiple relational tables.
@@ -113,7 +103,6 @@ The main documentation index lives in:
 
 Useful deep-dive docs:
 - [docs/05_feature_engineering.md](./docs/05_feature_engineering.md)
-- [docs/feature_engineering_formulas.md](./docs/feature_engineering_formulas.md)
 - [docs/chatbot_query_data_source.md](./docs/chatbot_query_data_source.md)
 
 ## Example Inference
@@ -146,3 +135,7 @@ The dashboard includes a dedicated AI Assistant tab.
 - **Database Migration:** Transition from static CSV stores to a robust relational database (e.g., PostgreSQL).
 - **Graph Database Integration:** Implement a real-time Graph Database (e.g., Neo4j) to calculate network features instantaneously without holding the entire graph in RAM.
 - **Streaming Pipeline:** Integrate Apache Kafka or AWS Kinesis to enable real-time streaming ML predictions on every incoming login/transaction event.
+
+## Notes
+- Pastikan file model dan data hasil generate sudah tersedia sebelum menjalankan backend.
+- Jika ingin membaca detail feature engineering, buka `docs/05_feature_engineering.md`.
