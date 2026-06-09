@@ -139,3 +139,7 @@ The dashboard includes a dedicated AI Assistant tab.
 ## Notes
 - Pastikan file model dan data hasil generate sudah tersedia sebelum menjalankan backend.
 - Jika ingin membaca detail feature engineering, buka `docs/05_feature_engineering.md`.
+
+## Demo
+Live demo frontend tersedia di:
+- [https://fake-acccount-detection.vercel.app/graph](https://fake-acccount-detection.vercel.app/graph)
