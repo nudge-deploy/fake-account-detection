@@ -142,4 +142,4 @@ The dashboard includes a dedicated AI Assistant tab.
 
 ## Demo
 Live demo frontend tersedia di:
-- [https://fake-acccount-detection.vercel.app/graph](https://fake-acccount-detection.vercel.app/graph)
+- [https://fake-acccount-detection.vercel.app](https://fake-acccount-detection.vercel.app)
