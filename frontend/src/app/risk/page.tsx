@@ -10,8 +10,6 @@
 
 import { useEffect, useState } from 'react';
 import { listUsers, getUserDetails, RiskUser, UserDetails } from '@/lib/api';
-import Link from 'next/link';
-
 export default function RiskScoringPage() {
  // Filter States
  const [search, setSearch] = useState('');
@@ -484,16 +482,9 @@ export default function RiskScoringPage() {
 
  {/* Drawer Footer */}
  <div className="bg-slate-50 border-t border-slate-200 p-4 flex gap-3">
- <Link
- href={`/graph?user_id=${selectedUserId}`}
- onClick={() => setSelectedUserId(null)}
- className="flex-1 text-center bg-v-blue hover:bg-blue-600 text-white font-bold text-xs py-3 rounded-lg shadow transition-colors"
- >
- Visualisasikan di Graph
- </Link>
  <button
  onClick={() => setSelectedUserId(null)}
- className="flex-1 border border-slate-300 hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs py-3 rounded-lg transition-colors"
+ className="w-full border border-slate-300 hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs py-3 rounded-lg transition-colors"
  >
  Tutup Panel
  </button>

@@ -1,9 +1,17 @@
+/**
+ * Purpose: Render the chatbot conversation UI for fraud-analysis queries.
+ * Used by: Next.js /chatbot page.
+ * Depends on: chatWithAgent API client, ReactMarkdown, and remark-gfm.
+ * Main functions: ChatbotPage component, handleSend, markdown formatting helpers.
+ * Side effects: Sends chat requests to the backend and appends chat messages in UI state.
+ */
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
 import { chatWithAgent } from '@/lib/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import axios from 'axios';
 
 interface ChatMessage {
  id: string;
@@ -35,11 +43,11 @@ export default function ChatbotPage() {
  const suggestions = [
  "Mengapa akun USR00010 dicurigai?",
  "Tampilkan 10 akun dengan risiko tertinggi.",
- "Perangkat mana yang paling banyak digunakan bersama?",
- "Alamat pengiriman mana yang dipakai banyak akun palsu?",
- "Berapa banyak akun palsu yang terdeteksi?",
- "Apa pola kecurangan (fraud) yang paling umum terjadi?",
- "Tampilkan jaringan fraud untuk perangkat DVC001."
+ "Berapa banyak akun fraud yang terdeteksi?",
+ "Alamat Hj. Ella Nasyidah dimana?",
+ "Transaksi USR00010 yang terkait apa saja?",
+ "Jelaskan shared address abuse.",
+ "Jelaskan referral ring abuse."
  ];
 
  // Auto scroll to bottom of chat
@@ -82,11 +90,15 @@ export default function ChatbotPage() {
  setMessages(prev => [...prev, assistantMsg]);
  } catch (err: any) {
  console.error(err);
- 
+
+ const backendDetail = axios.isAxiosError(err)
+ ? err.response?.data?.detail || err.response?.data?.message || err.message
+ : err?.message || 'Unknown error';
+
  const errorMsg: ChatMessage = {
  id: `msg-${Date.now()}-error`,
  sender: 'assistant',
- text: '⚠️ Maaf, terjadi kesalahan saat menghubungi server chatbot. Pastikan backend FastAPI berjalan.',
+ text: `⚠️ Maaf, chatbot gagal menjawab. Detail error: ${backendDetail}`,
  timestamp: new Date()
  };
  setMessages(prev => [...prev, errorMsg]);

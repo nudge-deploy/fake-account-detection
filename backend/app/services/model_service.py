@@ -1,3 +1,11 @@
+"""
+Purpose: Load ABT/user artifacts and serve overview, risk list, and user detail predictions.
+Used by: backend prediction API routes for /users, /user/{uid}, /predict, and overview stats.
+Main dependencies: Supabase, ABT CSV, user CSV, and the loaded fraud model artifact.
+Public/main functions: ModelService.load_artifacts, predict_user, predict_raw_features, get_user_details, get_top_risk_users, get_overview_stats, generate_reasons.
+Side effects: Loads model/data from disk and queries Supabase when fallback reads are needed.
+"""
+
 import os
 import json
 import joblib
@@ -8,6 +16,7 @@ from dotenv import load_dotenv
 from supabase import create_client, Client
 from app.utils.config import (
     MODEL_PATH, 
+    EXISTING_USER_MODEL_PATH,
     FEATURE_COLUMNS_PATH
 )
 from app.schemas.request_response import PredictionResponse, UserDetailResponse, TopRiskUser, TopRiskUsersResponse
@@ -35,14 +44,24 @@ class ModelService:
 
     def load_artifacts(self):
         # 1. Load ML Model
-        if os.path.exists(MODEL_PATH):
+        # Prefer the existing-user model for the risk table because it matches the
+        # current ABT feature space. Fall back to the legacy MODEL_PATH only if needed.
+        model_candidates = []
+        if os.path.exists(EXISTING_USER_MODEL_PATH):
+            model_candidates.append(EXISTING_USER_MODEL_PATH)
+        if os.path.exists(MODEL_PATH) and MODEL_PATH not in model_candidates:
+            model_candidates.append(MODEL_PATH)
+
+        for model_path in model_candidates:
             try:
-                self.model = joblib.load(MODEL_PATH)
-                print(f"Successfully loaded model from {MODEL_PATH}")
+                self.model = joblib.load(model_path)
+                print(f"Successfully loaded model from {model_path}")
+                break
             except Exception as e:
-                print(f"Error loading model from {MODEL_PATH}: {e}")
-        else:
-            print(f"Model path does not exist: {MODEL_PATH}")
+                print(f"Error loading model from {model_path}: {e}")
+                self.model = None
+        if self.model is None:
+            print(f"No usable model could be loaded. Checked: {model_candidates}")
 
         # 2. Load Feature Columns
         if os.path.exists(FEATURE_COLUMNS_PATH):
@@ -232,8 +251,9 @@ class ModelService:
             rule_score = float(row.get('risk_score', 0))
             fraud_val = bool(row.get('fraud')) if not pd.isna(row.get('fraud')) else None
             ftype_val = str(row.get('ftype')) if not pd.isna(row.get('ftype')) else None
-            ml_pred_val = int(row.get('ml_prediction')) if not pd.isna(row.get('ml_prediction')) else None
-            ml_prob_val = float(row.get('ml_probability')) if not pd.isna(row.get('ml_probability')) else None
+            live_prediction = self.predict_user(uid)
+            ml_pred_val = live_prediction.model_prediction if live_prediction else (int(row.get('ml_prediction')) if not pd.isna(row.get('ml_prediction')) else None)
+            ml_prob_val = live_prediction.model_probability if live_prediction else (float(row.get('ml_probability')) if not pd.isna(row.get('ml_probability')) else None)
             
             reasons = self.generate_reasons(row)
             

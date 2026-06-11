@@ -31,6 +31,8 @@ const STAGES: { id: LifecycleStage; label: string; desc: string }[] = [
  { id: 'transaction_completed', label: '4. Order Completed', desc: 'Order, voucher, reg to txn timing' },
 ];
 
+const JOURNEY_STAGE_ORDER: LifecycleStage[] = ['registration', 'transaction_completed'];
+
 const PAYMENT_METHODS = [
  'BCA',
  'BCA Debit',
@@ -51,6 +53,12 @@ const PAYMENT_METHODS = [
 ];
 
 const stageIndex = (s: LifecycleStage) => STAGES.findIndex((x) => x.id === s);
+
+const getPrimaryActionLabel = (stage: LifecycleStage, loading: boolean) => {
+ if (stage === 'registration') return loading ? 'Running Registration Inference...' : 'Run Registration Inference';
+ if (stage === 'transaction_completed') return loading ? 'Running Final Inference...' : 'Run Final Inference';
+ return loading ? 'Saving Journey Input...' : 'Save Journey Input';
+};
 
 const extractErrorMessage = (err: unknown, fallback: string) => {
  if (err && typeof err === 'object') {
@@ -120,7 +128,11 @@ const getFraudStatus = (r: LifecycleInferenceResponse) => {
  return r.is_fraud ? 'Fraud' : 'Tidak Fraud';
 };
 
-const getFraudPercent = (r: LifecycleInferenceResponse) => (r.model_probability * 100).toFixed(1);
+const getFraudPercent = (r: LifecycleInferenceResponse) => {
+ const pct = r.model_probability * 100;
+ if (pct > 0 && pct < 0.1) return '<0.1';
+ return pct.toFixed(2);
+};
 
 export default function ModelInferencePage() {
  const [customerType, setCustomerType] = useState<CustomerType>('new');
@@ -324,6 +336,7 @@ const buildFullJourneyPayload = (): AlfagiftLifecyclePayload => ({
  addressId: normalizeAddressId(effectiveAddressId),
  }),
  };
+
  const data =
  stage === 'registration'
  ? await predictRegistrationStage(params)
@@ -341,17 +354,19 @@ const buildFullJourneyPayload = (): AlfagiftLifecyclePayload => ({
 }
  };
 
- const handleJourney = async () => {
+const handleJourney = async () => {
  try {
  setLoading(true);
  setError(null);
  setResult(null);
  const data = await predictJourney({
- customer_type: customerType,
- uid: generatedUserId || uid || selectedUser?.uid || undefined,
- payload: buildFullJourneyPayload(),
+  customer_type: customerType,
+  uid: generatedUserId || uid || selectedUser?.uid || undefined,
+  payload: buildFullJourneyPayload(),
  });
- setJourneyResults(data.results);
+ setJourneyResults(
+ data.results.filter((r) => JOURNEY_STAGE_ORDER.includes(r.stage as LifecycleStage))
+ );
 } catch (err) {
  console.error(err);
  setError(extractErrorMessage(err, 'Failed to run the inference journey.'));
@@ -671,7 +686,7 @@ value={password}
  <div className="flex gap-2 pt-2">
  {stage !== 'transaction_completed' && (
  <button type="submit" disabled={loading} className="flex-1 bg-v-blue hover:bg-blue-600 disabled:opacity-50 text-white font-bold text-sm py-3 rounded-lg">
- {loading ? 'Analyzing...' : 'Analyze Stage'}
+ {getPrimaryActionLabel(stage, loading)}
  </button>
  )}
  <button type="button" disabled={loading} onClick={handleJourney} className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm py-3 rounded-lg">
@@ -701,11 +716,11 @@ value={password}
  </div>
  )}
 
- {!loading && resultsToShow.length > 0 && (
+{!loading && resultsToShow.length > 0 && (
  <div className="space-y-3 max-h-[700px] overflow-y-auto">
- <h3 className="font-bold text-slate-900 text-sm">
+  <h3 className="font-bold text-slate-900 text-sm">
  {journeyResults ? `Journey (${journeyResults.length} stages)` : 'Inference Result'}
- </h3>
+  </h3>
  {resultsToShow.map((r, i) => {
  return renderResultCard(r, i > 0 ? resultsToShow[i - 1] : undefined);
  })}
