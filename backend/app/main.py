@@ -11,6 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.services.model_service import ModelService
 from app.services.graph_service import GraphService
 from app.services.chatbot_service import ChatbotService
+from app.services.continuous_inference_service import ContinuousInferenceService
 from app.api import prediction, graph, chatbot
 
 @asynccontextmanager
@@ -21,6 +22,9 @@ async def lifespan(app: FastAPI):
     print("Initializing Model Service...")
     model_service = ModelService()
     app.state.model_service = model_service
+
+    print("Initializing Continuous Inference Service...")
+    app.state.continuous_inference_service = ContinuousInferenceService(model_service)
     
     print("Initializing Graph Service...")
     graph_service = GraphService()

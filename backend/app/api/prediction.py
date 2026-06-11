@@ -7,7 +7,12 @@ from app.schemas.request_response import (
     UserDetailResponse, 
     TopRiskUsersResponse,
     OverviewStatsResponse,
-    PaginatedUsersResponse
+    PaginatedUsersResponse,
+    LifecycleInferenceRequest,
+    LifecycleInferenceResponse,
+    LifecycleJourneyRequest,
+    LifecycleJourneyResponse,
+    SuspectedFraudType,
 )
 
 router = APIRouter()
@@ -120,6 +125,67 @@ async def list_users(
         limit=limit,
         users=users_list
     )
+
+def _to_lifecycle_response(result) -> LifecycleInferenceResponse:
+    return LifecycleInferenceResponse(
+        uid=result.uid,
+        stage=result.stage,
+        stage_label=result.stage_label,
+        customer_type=result.customer_type,
+        model_prediction=result.ml_prediction,
+        model_probability=result.ml_probability,
+        rule_based_score=result.rule_score,
+        risk_category=result.risk_category,
+        is_suspicious=result.is_suspicious,
+        is_fraud=result.is_fraud,
+        primary_fraud_type=result.primary_fraud_type,
+        primary_fraud_label=result.primary_fraud_label,
+        suspected_fraud_types=[
+            SuspectedFraudType(type=s["type"], label=s["label"], score=s["score"])
+            for s in result.suspected_fraud_types
+        ],
+        reasons=result.reasons,
+        features_available=result.features_available,
+        features_total=result.features_total,
+        confidence_note=result.confidence_note,
+        ground_truth_fraud=result.ground_truth_fraud,
+        ground_truth_ftype=result.ground_truth_ftype,
+    )
+
+
+@router.post("/inference/lifecycle", response_model=LifecycleInferenceResponse)
+async def predict_lifecycle(request: Request, body: LifecycleInferenceRequest):
+    """Inferensi fraud per tahap journey Alfagift dengan input alur nyata."""
+    service = request.app.state.continuous_inference_service
+    try:
+        result = service.predict_lifecycle(
+            stage=body.stage,
+            customer_type=body.customer_type,
+            payload=body.payload.model_dump(exclude_none=True),
+            uid=body.uid,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return _to_lifecycle_response(result)
+
+
+@router.post("/inference/journey", response_model=LifecycleJourneyResponse)
+async def predict_journey(request: Request, body: LifecycleJourneyRequest):
+    """Jalankan inferensi berurutan: registrasi -> login -> checkout -> transaksi selesai."""
+    service = request.app.state.continuous_inference_service
+    try:
+        results = service.predict_journey(
+            customer_type=body.customer_type,
+            payload=body.payload.model_dump(exclude_none=True),
+            uid=body.uid,
+            up_to_stage=body.up_to_stage,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return LifecycleJourneyResponse(
+        results=[_to_lifecycle_response(r) for r in results]
+    )
+
 
 @router.post("/predict", response_model=PredictionResponse)
 async def predict_account(request: Request, body: PredictionRequest):

@@ -8,12 +8,12 @@ Side effects: None.
 
 # Fake Account Detection Retail App Prototype
 
-Prototype ini menggabungkan synthetic data generation, graph analytics, machine learning, dan chatbot hybrid untuk mendeteksi fake account, voucher abuse, dan fraud ring di retail e-commerce mobile.
+Prototype ini menggabungkan synthetic data generation, graph analytics, machine learning, dan chatbot hybrid untuk mendeteksi fake account, voucher abuse, referral abuse, dan fraud ring di retail e-commerce mobile.
 
 ## Summary
 - **Data layer:** menghasilkan raw CSV dan ABT untuk training serta inference.
 - **Graph layer:** membangun relasi user-entity dan fitur graph untuk deteksi pola jaringan.
-- **Model layer:** melatih model ML dan menyimpan artefak `.pkl` / `.json`.
+- **Model layer:** melatih model ML terpisah untuk `new user` dan `existing user`, lalu menyimpan artefak `.pkl` / `.json`.
 - **Backend:** FastAPI untuk endpoint prediksi, graph, dan chatbot.
 - **Frontend:** Next.js dashboard untuk analisis risiko dan visualisasi graph.
 
@@ -53,7 +53,7 @@ python scripts/export_graph_api.py
 ```
 
 ## How to Train Model
-Train the machine learning models, resolve data leakages, and export the Champion Model metrics, feature lists, and pickle files:
+Train the machine learning models, resolve data leakages, and export the model metrics, feature lists, and pickle files:
 ```bash
 python scripts/train_model.py
 ```
@@ -128,8 +128,8 @@ The graph network creates an edge (connection) between any two users who share i
 
 ## Chatbot Usage
 The dashboard includes a dedicated AI Assistant tab.
-- **LLM Mode (Advanced):** Supply a `GROQ_API_KEY` in the backend `.env` file to use LLaMA-3.1. This allows for deep, contextual, and dynamic Q&A about fraud patterns.
-- **Rule-Based Mode (Fallback):** If no API key is provided, the chatbot seamlessly falls back to a regex-based parser. It can answer fixed-format questions like *"Why is user U001 suspicious?"* by directly parsing rules and ABT values.
+- **LLM Mode (Advanced):** Supply a `GROQ_API_KEY` in the backend `.env` file to use Groq `llama-3.1-8b-instant`.
+- **Rule-Based Mode (Fallback):** If no API key is provided, the chatbot falls back to rule-based parsing plus ABT/graph lookup. It can answer fixed-format questions like *"Why is user U001 suspicious?"* by directly parsing rules and stored values.
 
 ## Future Improvements
 - **Database Migration:** Transition from static CSV stores to a robust relational database (e.g., PostgreSQL).
@@ -138,6 +138,8 @@ The dashboard includes a dedicated AI Assistant tab.
 
 ## Notes
 - Pastikan file model dan data hasil generate sudah tersedia sebelum menjalankan backend.
+- `new user registration` memakai model khusus `fake_account_model_new_user.pkl` dengan feature registrasi yang lebih kecil.
+- `existing user` memakai model full / legacy yang sudah tersedia.
 - Jika ingin membaca detail feature engineering, buka `docs/05_feature_engineering.md`.
 
 ## Demo

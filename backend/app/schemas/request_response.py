@@ -22,6 +22,74 @@ class PredictionResponse(BaseModel):
     is_suspicious: bool = Field(..., description="Whether account is suspicious (ML prob > 0.5 or rule-based >= 50)")
     reasons: List[str] = Field(default_factory=list, description="Key indicators that made this account suspicious")
 
+# --- Alfagift Lifecycle Inference Schema ---
+class AlfagiftLifecyclePayload(BaseModel):
+    """Input sesuai alur nyata Alfagift per tahap user journey."""
+    phone_number: Optional[str] = Field(None, example="081234567890")
+    email: Optional[str] = Field(None, example="user@gmail.com")
+    full_name: Optional[str] = None
+    date_of_birth: Optional[str] = Field(None, example="2001-05-10")
+    registration_hour: Optional[int] = Field(None, ge=0, le=23)
+    is_email_verified: Optional[bool] = None
+    is_phone_verified: Optional[bool] = None
+    device_id: Optional[str] = Field(None, example="DEV00001")
+    device_fingerprint: Optional[str] = Field(None, example="FP_Vivo_Y27_9d94bdeaa1e75c56")
+    referral_code: Optional[str] = None
+    ip_address: Optional[str] = Field(None, example="103.10.20.5")
+    login_count_1h: Optional[int] = Field(None, ge=0, description="Jumlah login dalam 1 jam terakhir")
+    login_count_24h: Optional[int] = Field(None, ge=0)
+    accounts_on_same_ip: Optional[int] = Field(None, ge=1)
+    address_id: Optional[str] = Field(None, example="ADDR00001")
+    payment_id: Optional[str] = None
+    payment_identifier: Optional[str] = Field(None, description="Hash/nomor e-wallet/kartu")
+    order_amount: Optional[float] = Field(None, ge=0)
+    voucher_used: Optional[bool] = None
+    new_user_voucher: Optional[int] = Field(None, ge=0)
+    minutes_since_registration: Optional[int] = Field(None, ge=0)
+    promo_discount: Optional[float] = Field(None, ge=0)
+    promo_ratio: Optional[float] = Field(None, ge=0, le=1)
+
+class LifecycleInferenceRequest(BaseModel):
+    stage: str = Field(..., description="registration | login | checkout | transaction_completed")
+    customer_type: str = Field("new", description="new | existing")
+    uid: Optional[str] = Field(None, description="User ID untuk customer lama atau demo dataset")
+    payload: AlfagiftLifecyclePayload = Field(default_factory=AlfagiftLifecyclePayload)
+
+class SuspectedFraudType(BaseModel):
+    type: str
+    label: str
+    score: float
+
+class LifecycleInferenceResponse(BaseModel):
+    uid: str
+    stage: str
+    stage_label: str
+    customer_type: str
+    model_prediction: int
+    model_probability: float
+    rule_based_score: float
+    risk_category: str
+    is_suspicious: bool
+    is_fraud: bool
+    primary_fraud_type: str
+    primary_fraud_label: str
+    suspected_fraud_types: List[SuspectedFraudType] = Field(default_factory=list)
+    reasons: List[str] = Field(default_factory=list)
+    features_available: int
+    features_total: int
+    confidence_note: str
+    ground_truth_fraud: Optional[bool] = None
+    ground_truth_ftype: Optional[str] = None
+
+class LifecycleJourneyRequest(BaseModel):
+    customer_type: str = Field("new", description="new | existing")
+    uid: Optional[str] = None
+    payload: AlfagiftLifecyclePayload = Field(default_factory=AlfagiftLifecyclePayload)
+    up_to_stage: Optional[str] = None
+
+class LifecycleJourneyResponse(BaseModel):
+    results: List[LifecycleInferenceResponse]
+
 # --- User Detail Schema ---
 class UserDetailResponse(BaseModel):
     uid: str

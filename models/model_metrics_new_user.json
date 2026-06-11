@@ -1,0 +1,39 @@
+{
+    "best_model": "Logistic Regression",
+    "results": {
+        "Logistic Regression": {
+            "best_params": {
+                "classifier__C": 0.2,
+                "classifier__penalty": "l2"
+            },
+            "best_cv_f1": 0.9836832253165037,
+            "accuracy": 0.9867482161060143,
+            "precision": 0.9760479041916168,
+            "recall": 0.9979591836734694,
+            "f1_score": 0.9868819374369324,
+            "roc_auc": 0.9996009809219004,
+            "confusion_matrix": [
+                [
+                    479,
+                    12
+                ],
+                [
+                    1,
+                    489
+                ]
+            ],
+            "best_threshold": 0.55,
+            "best_threshold_f1": 0.9939024390243902,
+            "threshold_confusion_matrix": [
+                [
+                    486,
+                    5
+                ],
+                [
+                    1,
+                    489
+                ]
+            ]
+        }
+    }
+}

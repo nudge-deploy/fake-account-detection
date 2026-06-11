@@ -1,146 +1,195 @@
-import os
-import sys
+"""
+CLI inferensi berkelanjutan Alfagift — customer baru & lama.
+
+Contoh:
+  # Simulasi journey customer baru (registrasi → login → checkout → selesai)
+  python scripts/run_inference.py --uid USR00421 --journey --customer-type new
+
+  # Inferensi sekali di tahap login (customer lama)
+  python scripts/run_inference.py --uid USR00421 --stage login --customer-type existing
+
+  # Inferensi legacy (satu kali, semua fitur)
+  python scripts/run_inference.py --uid USR00421 --legacy
+"""
+
+from __future__ import annotations
+
 import argparse
-import joblib
-import pandas as pd
 import json
+import sys
+import os
 
-# Setup paths relative to script
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(BASE_DIR, 'models', 'fake_account_model.pkl')
-FEATURE_COLUMNS_PATH = os.path.join(BASE_DIR, 'models', 'feature_columns.json')
-ABT_PATH = os.path.join(BASE_DIR, 'data', 'abt', 'fake_account_abt.csv')
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "backend"))
 
-def generate_reasons(row):
-    reasons = []
-    
-    if row.get('max_acc_dev', 0) > 5:
-        reasons.append(f"Extreme device sharing ({int(row['max_acc_dev'])} accounts share the same device fingerprint)")
-    elif row.get('max_acc_dev', 0) > 2:
-        reasons.append(f"Multiple accounts ({int(row['max_acc_dev'])} accounts) share the same device fingerprint")
-        
-    if row.get('disp_email') == True or row.get('disp_email') == 1:
-        reasons.append("Registered using a temporary/disposable email address domain")
-        
-    if row.get('phone_score', 0) > 0.7:
-        reasons.append(f"Phone number displays suspicious pattern score of {row['phone_score']:.2f}")
-        
-    if row.get('max_acc_addr', 0) > 5:
-        reasons.append(f"Extreme address sharing ({int(row['max_acc_addr'])} accounts share the same shipping address group)")
-        
-    if row.get('max_acc_pay', 0) > 3:
-        reasons.append(f"Suspicious payment sharing ({int(row['max_acc_pay'])} accounts share the same payment method)")
-        
-    if row.get('promo_ratio', 0) > 0.9 and row.get('txn_f1m', 0) > 0:
-        reasons.append(f"Voucher exploitation indicator ({row['promo_ratio'] * 100:.1f}% of transactions used a voucher/promo)")
-        
-    if row.get('ref_ring', 0) > 3:
-        reasons.append(f"High referral ring score of {row['ref_ring']:.2f} (deep network structure of circular referrals)")
-        
-    if row.get('degree', 0) > 10:
-        reasons.append(f"Highly connected in network graph (degree={int(row['degree'])}: shares IPs, devices, address, or payments)")
-        
-    if row.get('shared_ip_count', 0) > 3:
-        reasons.append(f"High IP sharing detected ({int(row['shared_ip_count'])} shared IPs with other network nodes)")
-        
-    return reasons
+from app.inference.engine import ContinuousInferenceEngine, InferenceResult
+from app.inference.stages import CustomerType, LifecycleStage
 
-def main():
-    parser = argparse.ArgumentParser(description="CLI tool to run model inference on a User from ABT.")
-    parser.add_argument("--uid", type=str, help="User ID (uid) to look up in the ABT and predict.")
+
+def _print_result(result: InferenceResult, verbose: bool = False) -> None:
+    fraud_label = "FRAUD / MENCURIGAKAN" if result.is_fraud else "NORMAL"
+    pred_label = "FAKE ACCOUNT (1)" if result.ml_prediction == 1 else "NORMAL (0)"
+
+    print("\n" + "=" * 60)
+    print(f" INFERENSI ALFAGIFT - USER: {result.uid}")
+    print(f" Tahap: {result.stage_label}")
+    print(f" Tipe pelanggan: {result.customer_type.upper()}")
+    print("=" * 60)
+    print(f"Status                   : {fraud_label}")
+    print(f"ML Prediction            : {pred_label}")
+    print(f"ML Fraud Probability     : {result.ml_probability * 100:.2f}%")
+    print(f"Rule-Based Risk Score    : {result.rule_score:.1f}/100")
+    print(f"Risk Category            : {result.risk_category}")
+    print(f"Jenis Fraud (terduga)    : {result.primary_fraud_label}")
+
+    ranked = [
+        item
+        for item in result.suspected_fraud_types
+        if item["type"] not in ("normal", "unknown_fraud") and item["score"] > 0
+    ]
+    if ranked:
+        print("\nKemungkinan jenis fraud (ranking):")
+        for idx, item in enumerate(ranked[:5], 1):
+            print(f"  {idx}. {item['label']} (skor sinyal: {item['score']})")
+
+    print(f"\nFitur tersedia           : {result.features_available}/{result.features_total}")
+    print(f"Catatan kepercayaan      : {result.confidence_note}")
+
+    print("\nIndikator Mencurigakan:")
+    if result.reasons:
+        for idx, reason in enumerate(result.reasons, 1):
+            print(f"  {idx}. {reason}")
+    else:
+        print("  Tidak ada indikator utama pada tahap ini.")
+
+    if result.ground_truth_fraud is not None:
+        gt = "FAKE ACCOUNT" if result.ground_truth_fraud else "NORMAL"
+        print(f"\nGround Truth (evaluasi)  : {gt} ({result.ground_truth_ftype or 'normal'})")
+
+    print("=" * 60)
+
+    if verbose:
+        print(json.dumps(result.to_dict(), indent=2, ensure_ascii=False))
+
+
+def _run_legacy(engine: ContinuousInferenceEngine, uid: str | None) -> None:
+    """Mode kompatibilitas: inferensi penuh seperti versi sebelumnya."""
+    if uid:
+        row = engine.get_user_row(uid)
+        user_id = uid
+    else:
+        import pandas as pd
+
+        df = engine.df_abt
+        high_risk = df[df["risk_cat"] == "High"]
+        if not high_risk.empty:
+            row = high_risk.sample(1, random_state=42).iloc[0].to_dict()
+        else:
+            row = df.iloc[0].to_dict()
+        user_id = row["uid"]
+        print(f"Tidak ada uid. Menggunakan sampel user: {user_id}")
+
+    result = engine.predict(
+        str(user_id),
+        LifecycleStage.TRANSACTION_COMPLETED,
+        CustomerType.EXISTING,
+        row,
+    )
+    _print_result(result)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Inferensi fraud berkelanjutan Alfagift (customer baru & lama)."
+    )
+    parser.add_argument("--uid", type=str, help="User ID untuk diuji.")
+    parser.add_argument(
+        "--stage",
+        type=str,
+        choices=[s.value for s in LifecycleStage],
+        default="registration",
+        help="Tahap lifecycle (default: registration).",
+    )
+    parser.add_argument(
+        "--customer-type",
+        type=str,
+        choices=[c.value for c in CustomerType],
+        default="new",
+        help="new = fitur bertahap; existing = seluruh historis tersedia.",
+    )
+    parser.add_argument(
+        "--journey",
+        action="store_true",
+        help="Jalankan inferensi di semua tahap secara berurutan.",
+    )
+    parser.add_argument(
+        "--up-to",
+        type=str,
+        choices=[s.value for s in LifecycleStage],
+        help="Batasi journey sampai tahap tertentu.",
+    )
+    parser.add_argument(
+        "--legacy",
+        action="store_true",
+        help="Mode lama: satu inferensi penuh (semua fitur).",
+    )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output tambahan dalam format JSON.",
+    )
     args = parser.parse_args()
 
-    # Load Model
-    if not os.path.exists(MODEL_PATH):
-        print(f"Error: Model not found at {MODEL_PATH}")
-        sys.exit(1)
-    
-    # Load Feature Columns
-    if not os.path.exists(FEATURE_COLUMNS_PATH):
-        print(f"Error: Feature columns file not found at {FEATURE_COLUMNS_PATH}")
-        sys.exit(1)
-        
-    # Load ABT
-    if not os.path.exists(ABT_PATH):
-        print(f"Error: ABT not found at {ABT_PATH}")
+    try:
+        engine = ContinuousInferenceEngine()
+    except FileNotFoundError as exc:
+        print(f"Error: {exc}")
         sys.exit(1)
 
-    print("Loading model and features...")
-    model = joblib.load(MODEL_PATH)
-    with open(FEATURE_COLUMNS_PATH, 'r') as f:
-        feature_cols = json.load(f)
-        
-    print("Loading ABT data...")
-    df_abt = pd.read_csv(ABT_PATH)
-    
-    # Check if graph features exist and merge if needed
-    PROCESSED_DIR = os.path.join(BASE_DIR, 'data', 'processed')
-    graph_path = os.path.join(PROCESSED_DIR, 'user_graph_features.csv')
-    if os.path.exists(graph_path):
-        df_graph = pd.read_csv(graph_path)
-        df_graph = df_graph.rename(columns={
-            'user_id': 'uid',
-            'graph_degree': 'degree',
-            'graph_cluster_size': 'cluster',
-            'connected_component_size': 'comp_size',
-            'shared_entity_count': 'shared_ent'
-        })
-        if 'degree' not in df_abt.columns:
-            df_abt = df_abt.merge(df_graph, on='uid', how='left')
-            df_abt.fillna(0, inplace=True)
+    if args.legacy:
+        _run_legacy(engine, args.uid)
+        return
 
-    # Resolve user_id
-    if args.uid:
-        user_id = args.uid
-        matches = df_abt[df_abt['uid'] == user_id]
-        if matches.empty:
-            print(f"Error: User {user_id} not found in ABT.")
-            sys.exit(1)
-        row = matches.iloc[0]
-    else:
-        # Default to a random high-risk user or first user
-        high_risk_users = df_abt[df_abt['risk_cat'] == 'High']
-        if not high_risk_users.empty:
-            row = high_risk_users.sample(1, random_state=42).iloc[0]
-        else:
-            row = df_abt.iloc[0]
-        user_id = row['uid']
-        print(f"No uid specified. Defaulting to sample user: {user_id}")
+    if not args.uid and not args.journey:
+        print("Error: --uid wajib (kecuali --legacy tanpa uid untuk sampel acak).")
+        sys.exit(1)
 
-    # Prepare features
-    # Ensure missing columns are filled with 0
-    X_dict = row.to_dict()
-    for col in feature_cols:
-        if col not in X_dict:
-            X_dict[col] = 0
-            
-    X = pd.DataFrame([{col: X_dict[col] for col in feature_cols}])
-    X = X.fillna(0)
+    customer_type = CustomerType(args.customer_type)
+    up_to = LifecycleStage(args.up_to) if args.up_to else None
 
-    # Run Prediction
-    prob = float(model.predict_proba(X)[:, 1][0])
-    pred = int(model.predict(X)[0])
+    if args.journey:
+        uid = args.uid
+        if not uid:
+            import pandas as pd
 
-    rule_score = float(row.get('risk_score', 0))
-    risk_cat = row.get('risk_cat', 'Low')
-    reasons = generate_reasons(row)
+            fraud_users = engine.df_abt[engine.df_abt["fraud"] == True]
+            if not fraud_users.empty:
+                uid = str(fraud_users.sample(1, random_state=42).iloc[0]["uid"])
+            else:
+                uid = str(engine.df_abt.iloc[0]["uid"])
+            print(f"Journey demo — user: {uid}")
 
-    print("\n" + "="*55)
-    print(f" INFERENCE RESULTS FOR USER: {user_id}")
-    print("="*55)
-    print(f"ML Model Prediction      : {'FAKE ACCOUNT (1)' if pred == 1 else 'NORMAL (0)'}")
-    print(f"ML Fraud Probability     : {prob*100:.2f}%")
-    print(f"Rule-Based Risk Score    : {rule_score:.1f}/100")
-    print(f"Risk Category            : {risk_cat}")
-    print(f"Ground Truth Label       : {'FAKE ACCOUNT' if row.get('fraud') else 'NORMAL'} ({row.get('ftype', 'normal')})")
-    
-    print("\nSuspicion Indicators:")
-    if reasons:
-        for idx, reason in enumerate(reasons, 1):
-            print(f" {idx}. {reason}")
-    else:
-        print("  None (No major suspicious behavior detected)")
-    print("="*55)
+        print(f"\n>>> MEMULAI JOURNEY INFERENSI ({customer_type.value.upper()}) <<<")
+        results = engine.run_journey(uid, customer_type, up_to)
+
+        for i, result in enumerate(results):
+            if i > 0:
+                prev = results[i - 1]
+                delta_prob = (result.ml_probability - prev.ml_probability) * 100
+                delta_rule = result.rule_score - prev.rule_score
+                print(
+                    f"\n--- Perubahan dari tahap sebelumnya: "
+                    f"ML {delta_prob:+.1f}%, Rule {delta_rule:+.1f} ---"
+                )
+            _print_result(result, verbose=args.json)
+
+        if args.json:
+            print("\n" + json.dumps([r.to_dict() for r in results], indent=2, ensure_ascii=False))
+        return
+
+    stage = LifecycleStage(args.stage)
+    result = engine.predict(args.uid, stage, customer_type)
+    _print_result(result, verbose=args.json)
+
 
 if __name__ == "__main__":
     main()

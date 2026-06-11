@@ -1,71 +1,96 @@
 <!--
-Purpose: Summarize model training, evaluation metrics, and leakage controls.
-Used by: Reviewers validating model quality and training assumptions.
-Main dependencies: fake_account_abt.csv, feature_columns.json, fake_account_model.pkl.
+Purpose: Summarize the current training setup, evaluation, and deployment split for new-user and existing-user models.
+Used by: Developers, reviewers, and analysts checking model quality and artifact lineage.
+Main dependencies: scripts/generate_new_user_training_data.py, scripts/train_new_user_model.py, models/*, data/abt/fake_account_abt.csv.
 Public/main functions: N/A documentation only.
 Side effects: None.
 -->
 
-# Laporan Pemodelan Machine Learning & Evaluasi XGBoost
+# 06. Modeling Report
 
-Laporan ini merangkum *pipeline* klasifikasi Machine Learning **setelah dilakukannya perbaikan arsitektur data** dan penggabungan dengan fitur *Bipartite Graph Projection*. Seluruh fitur yang rentan membocorkan data masa depan (seperti agregasi `max_acc_ip` dan fitur jaringan graf) telah dihitung ulang khusus menggunakan data *training* untuk mencegah *Data Leakage*.
+Dokumen ini merangkum kondisi modeling project saat ini. Fokusnya bukan lagi satu model besar untuk semua skenario, tetapi dua jalur inference yang dipisah agar lebih realistis:
 
----
+1. **New user model** untuk registrasi awal.
+2. **Existing user model** untuk user yang sudah punya histori dan feature lengkap.
 
-## 1. Metodologi & Pembagian Dataset
+## Ringkasan Artifact
 
-- **Dataset Utama:** Analytics Base Table final (`fake_account_abt.csv`) yang sudah mencakup fitur turunan raw data dan fitur agregat graph dari `user_graph_features.csv`.
-- **Total Baris:** 10.000 pengguna.
-- **Total Kolom Fitur:** 64 Fitur Terpilih (Setelah seleksi fitur dan pembuangan label seperti `risk_score`).
-- **Split Configuration:** **70% Training** (7.000 pengguna) dan **30% Testing** (3.000 pengguna), distratifikasi agar seimbang.
-- **Pencegahan Kebocoran (Data Leakage Fix):** Fitur struktural makro (skalar) dan graf jaringan (seperti derajat koneksi dan ukuran komponen) dikalkulasi secara terisolasi hanya pada *split training*.
+| Artifact | Fungsi |
+|---|---|
+| `models/fake_account_model_new_user.pkl` | Model khusus registrasi new user. |
+| `models/model_metrics_new_user.json` | Metrik evaluasi new-user model. |
+| `models/feature_columns_new_user.json` | Urutan 10 feature registrasi new user. |
+| `models/fake_account_model.pkl` | Model legacy / full feature untuk jalur existing user dan stage lanjutan. |
+| `models/feature_columns.json` | Urutan 64 feature model full. |
 
----
+## New-User Model
 
-## 2. Hasil Evaluasi Test Set & Komparasi
+### Tujuan
 
-Performa model diukur pada 3.000 data tes yang benar-benar buta (belum pernah dilihat model sebelumnya):
+Model ini dibuat untuk skenario registrasi user baru ketika feature perilaku masih sangat tipis. Model tidak dipaksa membaca 64 feature full karena data tersebut memang belum tersedia di tahap awal.
 
-| Metric | Logistic Regression | Random Forest | XGBoost / Gradient Boosting ⭐ |
-| :--- | :---: | :---: | :---: |
-| **Accuracy** | 91.03% | 91.40% | **94.63%** |
-| **Precision** | 82.22% | 95.72% | **96.01%** |
-| **Recall** | **89.44%** | 74.66% | **85.66%** |
-| **F1-Score** | 85.68% | 83.90% | **90.55%** |
-| **ROC-AUC** | 0.9699 | 0.9788 | **0.9899** |
+### Feature Input
 
-> **Kemenangan XGBoost:** XGBoost terbukti sangat superior dalam menangani data yang berpotensi *imbalanced* dan memiliki banyak fitur pohon (seperti threshold pada bucket frekuensi login `login_v*`). Dengan ROC-AUC nyaris sempurna (99%), XGBoost berhasil mengungguli Random Forest, terutama dalam aspek presisi (kemampuan untuk tidak salah menuduh/blokir pengguna asli) yang menembus angka 96.01%.
+Model new-user menggunakan 10 feature registrasi:
 
----
+- `email_len`
+- `email_num_ratio`
+- `email_rand`
+- `disp_email`
+- `phone_score`
+- `full_name_len`
+- `is_email_verified`
+- `is_phone_verified`
+- `age_years`
+- `registration_hour`
 
-## 3. Analisis Champion Model & Feature Importance
+### Model yang Dipakai
 
-- **Model Terpilih:** **XGBoost / Gradient Boosting fallback** (F1-Score: **0.9055**).
-- **Interpretasi Kinerja:** 
-  Dari semua tebakan fraud (Fake Account) oleh XGBoost, 96% di antaranya adalah benar-benar penipu (*Precision sangat tinggi*). Ini menandakan bahwa model sudah siap untuk masuk ke tahap Produksi tanpa menyebabkan banyak komplain (*False Positives*) dari *customer* Alfagift. 
-  
-- **Top Predictive Features:**
-  Berdasarkan proses pelatihan model terakhir (setelah perbaikan *Data Leakage*), terjadi pergeseran metrik yang paling memengaruhi keputusan AI. Model kini tidak lagi bergantung pada kecepatan *login*, melainkan berfokus penuh pada **Jejak Relasi Sindikat (Graph Network)**. Berikut adalah Top 5 Fitur Utama:
+Saat ini champion new-user adalah **Logistic Regression** dalam pipeline dengan standard scaling.
 
-  1. 🥇 **`shared_ip_count` (Pentingnya: 41.02%)**
-     Fitur *Bipartite Graph* yang menghitung jumlah irisan alamat IP. Terbukti, penipu bersindikasi akan selalu tertangkap jaring karena mereka "memaksa" menggunakan alamat IP yang sama secara masif.
-     
-  2. 🥈 **`max_acc_ip` (Pentingnya: 14.31%)**
-     Kepadatan absolut dari sebuah *IP Address* (berapa banyak akun yang masuk dari 1 titik IP internet).
-     
-  3. 🥉 **`comp_size` (Pentingnya: 8.16%)**
-     Ukuran *Connected Component* dari graf jaringan. Makin besar kumpulannya, makin yakin AI bahwa ini adalah *Fraud Ring*.
-     
-  4. 🏅 **`shared_payment_count` (Pentingnya: 4.65%)**
-     Penggunaan instrumen pembayaran yang sama secara berulang oleh berbagai akun.
-     
-  5. 🏅 **`reg2txn_min` (Pentingnya: 4.48%)**
-     Waktu (dalam menit) dari mendaftar hingga melakukan transaksi pertama. Penipu umumnya bergerak instan layaknya robot.
+### Hasil Evaluasi Terakhir
 
-![Feature Importance](file:///d:/magang/fraud%20detection/docs/images/feature_importance.png)
+| Metrik | Nilai |
+|---|---:|
+| Accuracy | 0.9867 |
+| Precision | 0.9760 |
+| Recall | 0.9980 |
+| F1 Score | 0.9869 |
+| ROC AUC | 0.9996 |
+| Best threshold evaluasi | 0.55 |
 
----
+### Confusion Matrix
 
-## 4. Kesimpulan Akhir
+| | Pred Normal | Pred Fraud |
+|---|---:|---:|
+| Actual Normal | 479 | 12 |
+| Actual Fraud | 1 | 489 |
 
-Dengan perpaduan simulasi *Persona Jam Login* dari Simulator dan Ekstraksi Bipartit dari Modul Graph, kecerdasan buatan (*AI*) kita akhirnya memiliki "mata" untuk mengenali ciri khas robot dan sindikasi. Skor **ROC-AUC 98.98%** menandakan bahwa model kita sudah mencapai tingkatan akurasi tingkat industri (Level Produksi) dan telah siap untuk dipadukan (Hybrid) dengan Rule-Based Engine di Backend FastAPI.
+### Labeling Data Latih
+
+New-user synthetic training set saat ini menandai fraud berdasarkan dua pola utama:
+
+- disposable email domain
+- suspicious phone pattern
+
+Data latihnya sudah dibuat seimbang agar model tidak bias ke satu kelas saja.
+
+## Existing-User / Full Model
+
+Model full masih dipakai untuk jalur existing user dan stage lanjutan. Model ini membaca feature yang lebih lengkap dari ABT final, termasuk graph aggregate feature, login behavior, transaksi, referral, device sharing, address sharing, payment sharing, dan IP sharing.
+
+## Kenapa Dipisah
+
+Pemecahan model dilakukan karena konteks data berbeda:
+
+- **New user** hanya punya data registrasi awal.
+- **Existing user** sudah punya histori login, transaksi, graph, dan relasi entitas.
+
+Kalau new user dipaksa masuk ke jalur full-feature, hasilnya mudah bias dan sering terlalu mencurigakan walau sinyalnya masih minim.
+
+## Catatan Praktis
+
+- Registrasi new user sekarang dirancang untuk fokus pada pola yang benar-benar tersedia saat signup.
+- Stage berikutnya boleh menambah sinyal perilaku secara bertahap.
+- Output inference tetap dikembalikan sebagai probabilitas fraud, label fraud / bukan fraud, dan alasan utama.
+

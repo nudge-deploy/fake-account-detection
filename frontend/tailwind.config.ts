@@ -9,11 +9,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        'v-navy': '#111827',
-        'v-blue': '#3B82F6',
-        'v-light': '#F8FAFC',
+        background: "#F8FAFC",
+        foreground: "#111827",
+        'v-navy': '#0F172A',
+        'v-blue': '#2563EB',
+        'v-light': '#FFFFFF',
+      },
+      fontFamily: {
+        sans: ['var(--font-geist-sans)', 'Inter', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'monospace'],
       },
     },
   },

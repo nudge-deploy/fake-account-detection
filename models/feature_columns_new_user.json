@@ -1,0 +1,12 @@
+[
+    "email_len",
+    "email_num_ratio",
+    "email_rand",
+    "disp_email",
+    "phone_score",
+    "full_name_len",
+    "is_email_verified",
+    "is_phone_verified",
+    "age_years",
+    "registration_hour"
+]

@@ -17,7 +17,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white sticky top-0 z-50 shadow-sm transition-colors duration-300">
+    <nav className="bg-white border-b border-slate-200 text-slate-800 sticky top-0 z-50 shadow-sm transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center w-full justify-between">
@@ -28,7 +28,7 @@ export default function Navbar() {
                   alt="V-TEKI Logo" 
                   width={180} 
                   height={60} 
-                  className="h-12 md:h-14 w-auto object-contain dark:brightness-0 dark:invert transition-all"
+                  className="h-12 md:h-14 w-auto object-contain transition-all brightness-0"
                   priority
                 />
               </Link>
@@ -44,7 +44,7 @@ export default function Navbar() {
                     className={`inline-flex items-center px-1 py-2 text-sm font-semibold transition-all duration-200 ${
                       isActive
                         ? 'text-v-blue border-b-2 border-v-blue'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                        : 'text-slate-500 hover:text-slate-900'
                     }`}
                   >
                     {item.name}
@@ -58,7 +58,7 @@ export default function Navbar() {
       </div>
       
       {/* Mobile nav indicator bar */}
-      <div className="md:hidden flex justify-around border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 py-2 transition-colors duration-300">
+      <div className="md:hidden flex justify-around border-t border-slate-200 bg-slate-50 py-2 transition-colors duration-300">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -66,7 +66,7 @@ export default function Navbar() {
               key={item.href}
               href={item.href}
               className={`text-xs px-2 py-1.5 rounded-md font-medium transition-all ${
-                isActive ? 'text-v-blue font-bold bg-blue-50 dark:bg-slate-800' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                isActive ? 'text-v-blue font-bold bg-blue-50' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               {item.name}

@@ -17,6 +17,12 @@ const client = axios.create({
   },
 });
 
+const frontendClient = axios.create({
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 export interface OverviewStats {
   total_users: number;
   total_fake_accounts: number;
@@ -101,6 +107,63 @@ export interface PredictionResponse {
   reasons: string[];
 }
 
+export type LifecycleStage = 'registration' | 'login' | 'checkout' | 'transaction_completed';
+export type CustomerType = 'new' | 'existing';
+
+export interface AlfagiftLifecyclePayload {
+  phone_number?: string;
+  email?: string;
+  full_name?: string;
+  device_id?: string;
+  device_fingerprint?: string;
+  referral_code?: string;
+  ip_address?: string;
+  login_count_1h?: number;
+  login_count_24h?: number;
+  accounts_on_same_ip?: number;
+  address_id?: string;
+  payment_id?: string;
+  payment_identifier?: string;
+  order_amount?: number;
+  voucher_used?: boolean;
+  new_user_voucher?: number;
+  minutes_since_registration?: number;
+  promo_discount?: number;
+  promo_ratio?: number;
+}
+
+export interface SuspectedFraudType {
+  type: string;
+  label: string;
+  score: number;
+}
+
+export interface LifecycleInferenceResponse {
+  uid: string;
+  stage: LifecycleStage;
+  stage_label: string;
+  customer_type: CustomerType;
+  model_prediction: number;
+  model_probability: number;
+  rule_based_score: number;
+  risk_category: string;
+  is_suspicious: boolean;
+  is_fraud: boolean;
+  primary_fraud_type: string;
+  primary_fraud_label: string;
+  suspected_fraud_types: SuspectedFraudType[];
+  reasons: string[];
+  features_available: number;
+  features_total: number;
+  confidence_note: string;
+  ground_truth_fraud?: boolean | null;
+  ground_truth_ftype?: string | null;
+}
+
+export interface LifecycleJourneyResponse {
+  results: LifecycleInferenceResponse[];
+}
+
 export interface ChatResponse {
   reply: string;
   data?: Record<string, any> | null;
@@ -142,6 +205,62 @@ export const getGraphData = async (params: {
 
 export const predictRaw = async (features: Record<string, any>): Promise<PredictionResponse> => {
   const response = await client.post<PredictionResponse>('/api/predict', { features });
+  return response.data;
+};
+
+export const predictLifecycle = async (params: {
+  stage: LifecycleStage;
+  customer_type: CustomerType;
+  uid?: string;
+  payload: AlfagiftLifecyclePayload;
+}): Promise<LifecycleInferenceResponse> => {
+  const response = await frontendClient.post<LifecycleInferenceResponse>('/api/inference/lifecycle', params);
+  return response.data;
+};
+
+export const predictJourney = async (params: {
+  customer_type: CustomerType;
+  uid?: string;
+  payload: AlfagiftLifecyclePayload;
+  up_to_stage?: LifecycleStage;
+}): Promise<LifecycleJourneyResponse> => {
+  const response = await frontendClient.post<LifecycleJourneyResponse>('/api/inference/journey', params);
+  return response.data;
+};
+
+export const predictRegistrationStage = async (params: {
+  customer_type: CustomerType;
+  uid?: string;
+  payload: AlfagiftLifecyclePayload;
+}): Promise<LifecycleInferenceResponse> => {
+  const response = await frontendClient.post<LifecycleInferenceResponse>('/api/inference/registration', params);
+  return response.data;
+};
+
+export const predictLoginStage = async (params: {
+  customer_type: CustomerType;
+  uid?: string;
+  payload: AlfagiftLifecyclePayload;
+}): Promise<LifecycleInferenceResponse> => {
+  const response = await frontendClient.post<LifecycleInferenceResponse>('/api/inference/login', params);
+  return response.data;
+};
+
+export const predictCheckoutStage = async (params: {
+  customer_type: CustomerType;
+  uid?: string;
+  payload: AlfagiftLifecyclePayload;
+}): Promise<LifecycleInferenceResponse> => {
+  const response = await frontendClient.post<LifecycleInferenceResponse>('/api/inference/checkout', params);
+  return response.data;
+};
+
+export const predictTransactionCompletedStage = async (params: {
+  customer_type: CustomerType;
+  uid?: string;
+  payload: AlfagiftLifecyclePayload;
+}): Promise<LifecycleInferenceResponse> => {
+  const response = await frontendClient.post<LifecycleInferenceResponse>('/api/inference/transaction-completed', params);
   return response.data;
 };
 

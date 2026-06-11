@@ -3,21 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc; /* v-light */
-  --foreground: #111827; /* v-navy */
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a; /* slate-900 */
-    --foreground: #f8fafc; /* v-light */
-  }
+  --background: #F8FAFC;
+  --foreground: #111827;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 @layer utilities {
