@@ -1,0 +1,20 @@
+services:
+  backend:
+    build: .
+    container_name: fakedetect-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+    environment:
+      - PYTHONPATH=/app
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: fakedetect-tunnel
+    restart: always
+    command: tunnel --no-autoupdate --url http://backend:8080
+    depends_on:
+      - backend

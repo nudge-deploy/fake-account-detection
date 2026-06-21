@@ -32,3 +32,5 @@ frontend/*.pid
 
 # Model binary artifacts (large files — retrain locally)
 models/**/*.pkl
+
+# Docker artifacts (keep .dockerignore tracked)

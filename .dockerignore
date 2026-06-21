@@ -1,0 +1,12 @@
+.git
+.gitignore
+frontend/
+notebooks/
+scripts/
+docs/
+venv/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+models/**/*.pkl
