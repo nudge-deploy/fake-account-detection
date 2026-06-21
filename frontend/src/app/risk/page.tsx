@@ -10,6 +10,183 @@
 
 import { useEffect, useState } from 'react';
 import { listUsers, getUserDetails, RiskUser, UserDetails } from '@/lib/api';
+
+function combinedCategory(ruleScore: number, mlProb: number | null, criticalTrigger = false): string {
+  if (criticalTrigger || ruleScore >= 70 || (mlProb != null && mlProb >= 0.85)) return 'High';
+  if (ruleScore >= 40 || (mlProb != null && mlProb >= 0.60)) return 'Medium';
+  return 'Low';
+}
+
+function isConflict(ruleScore: number, mlProb: number | null): boolean {
+  if (mlProb == null) return false;
+  return (ruleScore < 40 && mlProb >= 0.85) || (ruleScore >= 70 && mlProb < 0.60);
+}
+
+const COMBINED_STYLE: Record<string, { badge: string; bar: string; text: string }> = {
+  High:   { badge: 'bg-red-100 text-red-700 border border-red-300',    bar: 'bg-red-500',    text: 'text-red-700' },
+  Medium: { badge: 'bg-amber-100 text-amber-700 border border-amber-300', bar: 'bg-amber-400', text: 'text-amber-700' },
+  Low:    { badge: 'bg-emerald-100 text-emerald-700 border border-emerald-300', bar: 'bg-emerald-500', text: 'text-emerald-700' },
+};
+
+const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string; dot: string }> = {
+  'Account Creation Abuse': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-400' },
+  'Identity Sharing':       { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', dot: 'bg-purple-400' },
+  'Behavioral Abuse':       { bg: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-200',    dot: 'bg-red-400'    },
+  'Network Fraud':          { bg: 'bg-rose-50',   text: 'text-rose-700',   border: 'border-rose-200',   dot: 'bg-rose-400'   },
+};
+
+function RiskAssessmentBlock({ userDetail }: { userDetail: UserDetails }) {
+  const combined = userDetail.combined_risk_category || userDetail.risk_category || 'Low';
+  const style = COMBINED_STYLE[combined] || COMBINED_STYLE.Low;
+  const mlPct = userDetail.ml_probability !== null && userDetail.ml_probability !== undefined
+    ? userDetail.ml_probability * 100 : null;
+  const rulePct = userDetail.risk_score_rule_based;
+  const rawPts  = userDetail.raw_rule_points ?? rulePct;
+  const hasCritical = userDetail.critical_trigger ?? false;
+
+  // Group breakdown by category
+  const grouped: Record<string, typeof userDetail.risk_score_breakdown> = {};
+  for (const item of (userDetail.risk_score_breakdown || [])) {
+    const cat = item.category || 'Other';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(item);
+  }
+
+  return (
+    <div className="space-y-3">
+      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Hasil Assessment Risiko</h4>
+
+      {/* Final verdict */}
+      <div className={`rounded-xl border p-4 ${style.badge}`}>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">Penilaian Akhir</span>
+          <span className={`text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${style.badge}`}>
+            {combined} RISK
+          </span>
+        </div>
+        <p className="text-[11px] opacity-80 leading-relaxed">
+          {combined === 'High'
+            ? 'Akun ini memiliki sinyal risiko tinggi. Perlu investigasi segera.'
+            : combined === 'Medium'
+            ? 'Akun ini menunjukkan pola mencurigakan. Perlu pemantauan lebih lanjut.'
+            : 'Tidak ada sinyal risiko signifikan yang terdeteksi.'}
+        </p>
+      </div>
+
+      {/* Critical trigger banner */}
+      {hasCritical && (
+        <div className="flex gap-2 bg-red-50 border border-red-300 rounded-lg p-3 text-xs text-red-800">
+          <span className="flex-shrink-0 font-bold text-red-500">&#9888;</span>
+          <div>
+            <p className="font-bold">Critical Trigger Aktif</p>
+            <p className="mt-0.5 opacity-80">
+              Salah satu sinyal ekstrem terdeteksi (device sharing &gt;10, payment sharing &gt;5, referral ring &gt;100, atau login &gt;20x/jam). Risiko otomatis dikategorikan HIGH.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Conflict warning */}
+      {userDetail.score_conflict && (
+        <div className="flex gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+          <span className="flex-shrink-0 text-amber-500">&#9888;</span>
+          <div>
+            <p className="font-bold">Sinyal Tidak Konsisten</p>
+            <p className="mt-0.5 opacity-80">
+              Rule-based dan ML model memberikan sinyal yang bertentangan. Perlu investigasi manual.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Two pillars */}
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        {/* Rule score */}
+        <div className="border border-slate-200 rounded-lg p-3 bg-white">
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Rule Score</p>
+          <p className="text-2xl font-black text-slate-900 font-mono leading-none">
+            {rulePct}<span className="text-sm font-bold text-slate-400">/100</span>
+          </p>
+          {rawPts > 100 && (
+            <p className="text-[9px] text-slate-400 mt-0.5">Raw poin: {Math.round(rawPts)} (di-cap 100)</p>
+          )}
+          <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full ${rulePct >= 70 ? 'bg-red-500' : rulePct >= 40 ? 'bg-amber-400' : 'bg-emerald-500'}`}
+              style={{ width: `${Math.min(100, rulePct)}%` }} />
+          </div>
+          <p className="text-[9px] text-slate-400 mt-1.5">HIGH ≥ 70 · MED ≥ 40</p>
+        </div>
+
+        {/* ML score */}
+        <div className="border border-slate-200 rounded-lg p-3 bg-white">
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">ML Probability</p>
+          <p className={`text-2xl font-black font-mono leading-none ${mlPct !== null && mlPct >= 85 ? 'text-red-600' : mlPct !== null && mlPct >= 60 ? 'text-amber-600' : 'text-slate-700'}`}>
+            {mlPct !== null ? `${mlPct.toFixed(1)}%` : 'N/A'}
+          </p>
+          {mlPct !== null && (
+            <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              <div className={`h-full rounded-full ${mlPct >= 85 ? 'bg-red-500' : mlPct >= 60 ? 'bg-amber-400' : 'bg-emerald-500'}`}
+                style={{ width: `${Math.min(100, mlPct)}%` }} />
+            </div>
+          )}
+          <p className="text-[9px] text-slate-400 mt-1.5">
+            <span className={`font-bold px-1 py-0.5 rounded ${userDetail.model_type === 'new' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
+              {userDetail.model_type === 'new' ? 'New' : 'Existing'} model
+            </span>
+            {' '}HIGH ≥ 85%
+          </p>
+        </div>
+      </div>
+
+      {/* Breakdown by category */}
+      {Object.keys(grouped).length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Rule Breakdown</p>
+            <p className="text-[9px] text-slate-400">
+              Rule Score dihitung dari bobot tertinggi per fitur, di-cap 100
+            </p>
+          </div>
+          {Object.entries(grouped).map(([cat, items]) => {
+            const cc = CATEGORY_COLORS[cat] || { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200', dot: 'bg-slate-400' };
+            const catTotal = items.reduce((s, r) => s + r.points, 0);
+            return (
+              <div key={cat} className={`rounded-lg border ${cc.border} overflow-hidden`}>
+                {/* Category header */}
+                <div className={`flex items-center justify-between px-3 py-1.5 ${cc.bg}`}>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`w-2 h-2 rounded-full ${cc.dot}`} />
+                    <span className={`text-[10px] font-bold ${cc.text}`}>{cat}</span>
+                  </div>
+                  <span className={`text-[10px] font-black ${cc.text}`}>+{catTotal} pts</span>
+                </div>
+                {/* Rules */}
+                <div className="divide-y divide-slate-100 bg-white">
+                  {items.map((item, i) => (
+                    <div key={i} className="flex items-center justify-between px-3 py-2 gap-2">
+                      <span className="text-slate-600 text-[11px] leading-tight flex-1">{item.label}</span>
+                      <span className="font-bold text-orange-600 whitespace-nowrap text-xs">+{item.points}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Total row */}
+          <div className="flex justify-between items-center px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+            <div className="text-[11px] text-slate-600">
+              <span className="font-bold text-slate-800">Total Rule Score</span>
+              {rawPts > 100 && <span className="text-[9px] text-slate-400 ml-1">(raw {Math.round(rawPts)} pts → cap 100)</span>}
+            </div>
+            <span className="font-black text-slate-900 text-sm">{rulePct}<span className="text-xs text-slate-400">/100</span></span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function RiskScoringPage() {
  // Filter States
  const [search, setSearch] = useState('');
@@ -227,13 +404,22 @@ export default function RiskScoringPage() {
  <div className="overflow-x-auto">
  <table className="min-w-full divide-y divide-slate-200 text-sm text-left">
  <thead>
- <tr className="text-slate-600 font-semibold bg-slate-50">
+ <tr className="text-slate-600 font-semibold bg-slate-50 text-xs">
  <th className="px-6 py-3">User ID</th>
  <th className="px-6 py-3">Nama Lengkap</th>
  <th className="px-6 py-3">Kota</th>
- <th className="px-6 py-3">Skor Aturan</th>
- <th className="px-6 py-3">Kategori</th>
- <th className="px-6 py-3">Prediksi Model</th>
+ <th className="px-6 py-3">
+ <span className="block">Skor Aturan</span>
+ <span className="block text-[10px] text-slate-400 font-normal">Rule-based (0–100)</span>
+ </th>
+ <th className="px-6 py-3">
+ <span className="block">Kategori</span>
+ <span className="block text-[10px] text-slate-400 font-normal">Gabungan ML + Aturan</span>
+ </th>
+ <th className="px-6 py-3">
+ <span className="block">Prediksi Model</span>
+ <span className="block text-[10px] text-slate-400 font-normal">ML – Existing Customer</span>
+ </th>
  <th className="px-6 py-3">Indikator Teratas</th>
  <th className="px-6 py-3 text-right">Aksi</th>
  </tr>
@@ -254,25 +440,34 @@ export default function RiskScoringPage() {
  </span>
  </td>
  <td className="px-6 py-4">
- <span
- className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
- user.risk_category === 'High'
- ? 'bg-red-100 text-red-800'
- : user.risk_category === 'Medium'
- ? 'bg-amber-100 text-amber-800'
+ {(() => {
+ const cat = combinedCategory(user.risk_score_rule_based, user.ml_probability);
+ const conflict = isConflict(user.risk_score_rule_based, user.ml_probability);
+ return (
+ <div className="flex items-center gap-1.5">
+ <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+ cat === 'High' ? 'bg-red-100 text-red-800'
+ : cat === 'Medium' ? 'bg-amber-100 text-amber-800'
  : 'bg-emerald-100 text-emerald-800'
- }`}
- >
- {user.risk_category}
+ }`}>
+ {cat}
  </span>
+ {conflict && (
+ <span title="Rule-based dan ML tidak sinkron — perlu investigasi manual" className="text-amber-500 cursor-help text-sm leading-none">⚠</span>
+ )}
+ </div>
+ );
+ })()}
  </td>
  <td className="px-6 py-4">
- <span className={`inline-flex items-center gap-1.5 ${
+ <span className={`inline-flex items-center gap-1.5 text-xs ${
  user.ml_prediction === 1 ? 'text-red-600 font-bold' : 'text-emerald-600'
  }`}>
- <span className={`h-1.5 w-1.5 rounded-full ${user.ml_prediction === 1 ? 'bg-red-600' : 'bg-emerald-600'}`}></span>
+ <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${user.ml_prediction === 1 ? 'bg-red-600' : 'bg-emerald-600'}`}></span>
  {user.ml_prediction === 1 ? 'Fake' : 'Normal'}
- {user.ml_probability !== null && ` (${(user.ml_probability * 100).toFixed(0)}%)`}
+ {user.ml_probability !== null && (
+ <span className="text-slate-500 font-normal">({(user.ml_probability * 100).toFixed(0)}%)</span>
+ )}
  </span>
  </td>
  <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{user.top_reason || '-'}</td>
@@ -375,25 +570,14 @@ export default function RiskScoringPage() {
  </div>
 
  {/* Fraud Assessment */}
- <div className="space-y-3">
- <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Hasil Assessment Risiko</h4>
- <div className="grid grid-cols-2 gap-3 text-center">
- <div className="border border-slate-200 rounded-lg p-3 bg-white shadow-sm">
- <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Risk Score</p>
- <p className="text-xl font-black text-slate-900 mt-1 font-mono">{userDetail.risk_score_rule_based}/100</p>
- </div>
- <div className="border border-slate-200 rounded-lg p-3 bg-white shadow-sm">
- <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Model ML Probability</p>
- <p className="text-xl font-black text-red-600 mt-1 font-mono">
- {userDetail.ml_probability !== null ? `${(userDetail.ml_probability * 100).toFixed(1)}%` : 'N/A'}
- </p>
- </div>
- </div>
- </div>
+ <RiskAssessmentBlock userDetail={userDetail} />
 
  {/* Suspect indicators */}
  <div className="space-y-2">
+ <div>
  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Faktor Pemicu Kecurigaan</h4>
+ <p className="text-[10px] text-slate-400 mt-0.5">Berdasarkan analisis pola fitur akun (bukan output model ML)</p>
+ </div>
  {userDetail.reasons && userDetail.reasons.length > 0 ? (
  <div className="space-y-1.5">
  {userDetail.reasons.map((r, i) => (

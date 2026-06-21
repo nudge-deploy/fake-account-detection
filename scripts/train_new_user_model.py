@@ -1,7 +1,7 @@
 """
 Purpose: Train a dedicated new-user fraud model from registration-only features.
 Used by: Manual training workflow and backend new-user inference artifact loading.
-Main dependencies: fake_account_abt.csv, scikit-learn, joblib, feature_columns_new_user.json.
+Main dependencies: fake_account_abt.csv, scikit-learn, joblib, models/new_customer/feature_columns.json.
 Public/main functions: train, evaluate_model, save_artifacts.
 Side effects: Writes new-user model and metric artifacts to the models directory.
 """
@@ -25,10 +25,10 @@ from sklearn.preprocessing import StandardScaler
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 ABT_PATH = os.path.join(BASE_DIR, "data", "abt", "fake_account_abt.csv")
-MODELS_DIR = os.path.join(BASE_DIR, "models")
-FEATURE_COLUMNS_PATH = os.path.join(MODELS_DIR, "feature_columns_new_user.json")
-MODEL_PATH = os.path.join(MODELS_DIR, "fake_account_model_new_user.pkl")
-METRICS_PATH = os.path.join(MODELS_DIR, "model_metrics_new_user.json")
+MODELS_DIR = os.path.join(BASE_DIR, "models", "new_customer")
+FEATURE_COLUMNS_PATH = os.path.join(MODELS_DIR, "feature_columns.json")
+MODEL_PATH = os.path.join(MODELS_DIR, "model.pkl")
+METRICS_PATH = os.path.join(MODELS_DIR, "metrics.json")
 TRAIN_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "new_user_training_data.csv")
 
 FEATURES = [

@@ -23,7 +23,6 @@ from app.utils.config import (
     FEATURE_COLUMNS_PATH,
     NEW_USER_FEATURE_COLUMNS_PATH,
     NEW_USER_MODEL_PATH,
-    MODEL_PATH,
 )
 from .fraud_classifier import FRAUD_TYPE_LABELS, classify_fraud_types
 from .reasons import generate_reasons
@@ -33,7 +32,6 @@ from .stages import (
     STAGE_LABELS_ID,
     CustomerType,
     LifecycleStage,
-    features_available_at_stage,
     features_available_for_customer,
 )
 
@@ -99,18 +97,8 @@ class ContinuousInferenceEngine:
         self.new_user_feature_columns = new_user_feature_columns or []
         self.df_abt = df_abt
 
-        self.new_user_model = self._load_model(
-            self.new_user_model,
-            NEW_USER_MODEL_PATH,
-            fallback_path=MODEL_PATH,
-            label="new user",
-        )
-        self.existing_user_model = self._load_model(
-            self.existing_user_model,
-            EXISTING_USER_MODEL_PATH,
-            fallback_path=MODEL_PATH,
-            label="existing user",
-        )
+        self.new_user_model = self._load_model(self.new_user_model, NEW_USER_MODEL_PATH, "new user")
+        self.existing_user_model = self._load_model(self.existing_user_model, EXISTING_USER_MODEL_PATH, "existing user")
         if not self.feature_columns:
             with open(FEATURE_COLUMNS_PATH, "r", encoding="utf-8") as f:
                 self.feature_columns = json.load(f)
@@ -150,22 +138,21 @@ class ContinuousInferenceEngine:
             return []
         return [str(name) for name in list(names)]
 
-    def _load_model(self, model, preferred_path: str, fallback_path: str, label: str):
+    def _load_model(self, model, path: str, label: str):
         if model is not None:
             return model
-
-        for path in (preferred_path, fallback_path):
-            if not path or not os.path.exists(path):
-                continue
-            try:
-                return joblib.load(path)
-            except Exception as exc:
-                print(f"Warning: failed to load {label} model from {path}: {exc}")
-        return None
+        if not path or not os.path.exists(path):
+            print(f"Warning: {label} model not found at {path}")
+            return None
+        try:
+            return joblib.load(path)
+        except Exception as exc:
+            print(f"Warning: failed to load {label} model from {path}: {exc}")
+            return None
 
     def _select_model(self, customer_type: CustomerType, stage: LifecycleStage):
-        if customer_type == CustomerType.NEW and stage == LifecycleStage.REGISTRATION:
-            return self.new_user_model
+        if customer_type == CustomerType.NEW:
+            return self.new_user_model or self.existing_user_model
         return self.existing_user_model or self.new_user_model
 
     def _decision_threshold(self, customer_type: CustomerType, stage: LifecycleStage) -> float:
@@ -193,11 +180,7 @@ class ContinuousInferenceEngine:
         available = (
             set(self.feature_columns)
             if customer_type == CustomerType.EXISTING
-            else (
-                set(self.new_user_feature_columns)
-                if stage == LifecycleStage.REGISTRATION
-                else features_available_for_customer(stage, customer_type)
-            )
+            else set(self.new_user_feature_columns) | features_available_for_customer(stage, customer_type)
         )
         for col in self.feature_columns:
             if col not in available:
@@ -225,11 +208,7 @@ class ContinuousInferenceEngine:
         available_set = (
             set(self.feature_columns)
             if customer_type == CustomerType.EXISTING
-            else (
-                set(self.new_user_feature_columns)
-                if stage == LifecycleStage.REGISTRATION
-                else features_available_for_customer(stage, customer_type)
-            )
+            else set(self.new_user_feature_columns) | features_available_for_customer(stage, customer_type)
         )
 
         model = self._select_model(customer_type, stage)
@@ -237,7 +216,7 @@ class ContinuousInferenceEngine:
         if not selected_columns:
             selected_columns = (
                 self.new_user_feature_columns
-                if customer_type == CustomerType.NEW and stage == LifecycleStage.REGISTRATION
+                if customer_type == CustomerType.NEW
                 else self.feature_columns
             )
 
@@ -256,7 +235,7 @@ class ContinuousInferenceEngine:
         is_fraud = pred == 1 or is_suspicious
 
         staged_row["risk_score"] = rule_score
-        reasons = generate_reasons(staged_row, stage)
+        reasons = generate_reasons(staged_row, stage, customer_type)
         primary_type, ranked = classify_fraud_types(staged_row, is_suspicious)
 
         if not is_suspicious and primary_type == "unknown_fraud":

@@ -113,6 +113,12 @@ class UserDetailResponse(BaseModel):
     connected_addresses: Optional[List[str]] = Field(default_factory=list, description="List of address IDs connected to this user in the graph")
     connected_ips: Optional[List[str]] = Field(default_factory=list, description="List of IP addresses connected to this user in the graph")
     reasons: Optional[List[str]] = Field(default_factory=list, description="Key indicators that made this account suspicious")
+    model_type: str = Field("existing", description="Which model scored this user: 'existing' or 'new'")
+    risk_score_breakdown: Optional[List[Dict[str, Any]]] = Field(default_factory=list, description="Per-rule contribution to risk score")
+    combined_risk_category: str = Field("Low", description="Final verdict combining ML + rule-based")
+    score_conflict: bool = Field(False, description="True when ML and rule-based strongly disagree")
+    critical_trigger: bool = Field(False, description="True when at least one critical rule is triggered")
+    raw_rule_points: float = Field(0.0, description="Sum of all rule points before cap at 100")
 
 # --- Overview Stats Schema ---
 class OverviewStatsResponse(BaseModel):

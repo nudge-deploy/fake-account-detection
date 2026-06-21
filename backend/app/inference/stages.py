@@ -59,16 +59,19 @@ STAGE_FEATURE_GROUPS = {
     ],
 }
 
+NEW_USER_REGISTRATION_FEATURES = [
+    "email_len", "email_num_ratio", "email_rand", "disp_email", "phone_score",
+    "full_name_len", "is_email_verified", "is_phone_verified", "age_years", "registration_hour",
+]
+
 STAGE_FEATURE_GROUPS_NEW = {
-    LifecycleStage.REGISTRATION: [
-        "email_len", "email_num_ratio", "email_rand", "disp_email", "phone_score",
-    ],
-    LifecycleStage.LOGIN: STAGE_FEATURE_GROUPS[LifecycleStage.REGISTRATION]
+    LifecycleStage.REGISTRATION: NEW_USER_REGISTRATION_FEATURES,
+    LifecycleStage.LOGIN: NEW_USER_REGISTRATION_FEATURES
     + STAGE_FEATURE_GROUPS[LifecycleStage.LOGIN],
-    LifecycleStage.CHECKOUT: STAGE_FEATURE_GROUPS[LifecycleStage.REGISTRATION]
+    LifecycleStage.CHECKOUT: NEW_USER_REGISTRATION_FEATURES
     + STAGE_FEATURE_GROUPS[LifecycleStage.LOGIN]
     + STAGE_FEATURE_GROUPS[LifecycleStage.CHECKOUT],
-    LifecycleStage.TRANSACTION_COMPLETED: STAGE_FEATURE_GROUPS[LifecycleStage.REGISTRATION]
+    LifecycleStage.TRANSACTION_COMPLETED: NEW_USER_REGISTRATION_FEATURES
     + STAGE_FEATURE_GROUPS[LifecycleStage.LOGIN]
     + STAGE_FEATURE_GROUPS[LifecycleStage.CHECKOUT]
     + STAGE_FEATURE_GROUPS[LifecycleStage.TRANSACTION_COMPLETED],

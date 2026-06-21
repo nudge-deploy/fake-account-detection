@@ -2,7 +2,7 @@
 Used by: Manual model selection for the new-user inference branch.
 Main dependencies: fake_account_abt.csv, users.csv, scikit-learn, joblib.
 Public/main functions: train_and_compare.
-Side effects: Writes new-user experiment metrics to models/new_user_scheme_comparison.json.
+Side effects: Writes new-user experiment metrics to models/new_customer/scheme_comparison.json.
 """
 
 from __future__ import annotations
@@ -23,10 +23,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-BASE_DIR = r'D:\magang\fraud detection'
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ABT_PATH = os.path.join(BASE_DIR, 'data', 'abt', 'fake_account_abt.csv')
 USERS_PATH = os.path.join(BASE_DIR, 'data', 'raw', 'users.csv')
-OUT_PATH = os.path.join(BASE_DIR, 'models', 'new_user_scheme_comparison.json')
+OUT_PATH = os.path.join(BASE_DIR, 'models', 'new_customer', 'scheme_comparison.json')
 
 
 def calc_entropy(text):

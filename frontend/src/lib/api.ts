@@ -75,6 +75,12 @@ export interface UserDetails {
   connected_addresses: string[];
   connected_ips: string[];
   reasons: string[];
+  model_type: string;
+  risk_score_breakdown: { category: string; label: string; points: number; value?: string | number }[];
+  combined_risk_category: string;
+  score_conflict: boolean;
+  critical_trigger: boolean;
+  raw_rule_points: number;
 }
 
 export interface GraphNode {
@@ -97,6 +103,38 @@ export interface GraphData {
   edges: GraphEdge[];
 }
 
+export interface GraphStats {
+  total_users: number;
+  high_risk_users: number;
+  medium_risk_users: number;
+  low_risk_users: number;
+  fraud_rings: number;
+  largest_ring_size: number;
+  avg_ring_size: number;
+  shared_device_networks: number;
+  shared_ip_networks: number;
+  shared_payment_networks: number;
+  shared_address_networks: number;
+  total_nodes: number;
+  total_edges: number;
+}
+
+export interface EntityDetailUser {
+  uid: string;
+  label: string;
+  risk_category: string;
+  risk_score: number;
+  ftype: string | null;
+}
+
+export interface EntityDetail {
+  entity_id: string;
+  entity_type: string;
+  label: string;
+  total_connections: number;
+  connected_users: EntityDetailUser[];
+}
+
 export interface PredictionResponse {
   uid: string | null;
   model_prediction: number;
@@ -114,6 +152,10 @@ export interface AlfagiftLifecyclePayload {
   phone_number?: string;
   email?: string;
   full_name?: string;
+  date_of_birth?: string;
+  registration_hour?: number;
+  is_email_verified?: boolean;
+  is_phone_verified?: boolean;
   device_id?: string;
   device_fingerprint?: string;
   referral_code?: string;
@@ -198,8 +240,19 @@ export const getGraphData = async (params: {
   user_id?: string;
   risk_category?: string;
   max_nodes?: number;
+  hop_depth?: number;
 }): Promise<GraphData> => {
   const response = await client.get<GraphData>('/api/graph', { params });
+  return response.data;
+};
+
+export const getGraphStats = async (): Promise<GraphStats> => {
+  const response = await client.get<GraphStats>('/api/graph/stats');
+  return response.data;
+};
+
+export const getEntityDetail = async (entityId: string): Promise<EntityDetail> => {
+  const response = await client.get<EntityDetail>(`/api/graph/entity/${entityId}`);
   return response.data;
 };
 

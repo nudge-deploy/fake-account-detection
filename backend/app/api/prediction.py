@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException, Query
 from typing import Optional
 import pandas as pd
+from app.inference.scoring import explain_rule_score, compute_final_risk
 from app.schemas.request_response import (
     PredictionRequest, 
     PredictionResponse, 
@@ -239,7 +240,26 @@ async def get_user_details(request: Request, uid: str):
     result.connected_payments = connected_payments
     result.connected_addresses = connected_addresses
     result.connected_ips = connected_ips
-    
+    result.model_type = "existing"
+
+    # Sync IP-related reason to use actual graph count (not ABT aggregate)
+    result.reasons = [r for r in (result.reasons or []) if 'IP sharing' not in r and 'shared IP' not in r]
+    if len(connected_ips) > 3:
+        result.reasons.append(
+            f"Logged in from {len(connected_ips)} different IP addresses shared with other network accounts"
+        )
+
+    # Build risk score breakdown using full ABT features (no lifecycle stage filter)
+    rule_score, breakdown, critical_trigger, raw_points = explain_rule_score(result.features)
+    result.risk_score_rule_based = rule_score  # override with full-feature score for investigation panel
+    result.risk_score_breakdown = breakdown
+    result.critical_trigger = critical_trigger
+    result.raw_rule_points = raw_points
+
+    # Final Risk Decision
+    ml_prob = result.ml_probability or 0.0
+    result.combined_risk_category, result.score_conflict = compute_final_risk(rule_score, ml_prob, critical_trigger)
+
     return result
 
 @router.get("/risk/top-users", response_model=TopRiskUsersResponse)

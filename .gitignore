@@ -1,6 +1,6 @@
+# Python
 .env
 .env.local
-node_modules/
 __pycache__/
 *.pyc
 *.pyo
@@ -12,4 +12,23 @@ venv/
 env.bak/
 venv.bak/
 
+# Node / Next.js
+node_modules/
+.next/
+frontend/.env.local
+frontend/.env.production
+
+# macOS
 .DS_Store
+
+# Runtime log files
+backend/*.log
+backend/*.err
+backend/*.pid
+frontend/*.log
+frontend/*.err
+frontend/*.job
+frontend/*.pid
+
+# Model binary artifacts (large files — retrain locally)
+models/**/*.pkl

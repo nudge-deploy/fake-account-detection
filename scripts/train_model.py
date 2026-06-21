@@ -29,7 +29,7 @@ from sklearn.metrics import (
 # Directories configuration
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 ABT_PATH = os.path.join(BASE_DIR, 'data', 'abt', 'fake_account_abt.csv')
-MODELS_DIR = os.path.join(BASE_DIR, 'models')
+MODELS_DIR = os.path.join(BASE_DIR, 'models', 'existing_customer')
 IMG_DIR = os.path.join(BASE_DIR, 'docs', 'images')
 os.makedirs(MODELS_DIR, exist_ok=True)
 os.makedirs(IMG_DIR, exist_ok=True)
@@ -404,7 +404,7 @@ champion_pipeline = best_estimators[champion_name]
 print(f"\n[CHAMPION] Champion Model Selected: {champion_name} (F1-Score: {model_metrics[champion_name]['f1_score']:.4f})")
 
 # 10. Save Champion Model & Feature Columns List
-model_output_path = os.path.join(MODELS_DIR, 'fake_account_model.pkl')
+model_output_path = os.path.join(MODELS_DIR, 'model.pkl')
 joblib.dump(champion_pipeline, model_output_path)
 print(f"Saved champion pipeline to: {model_output_path}")
 

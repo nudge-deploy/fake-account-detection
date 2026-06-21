@@ -1,10 +1,19 @@
-from typing import Any
+from typing import Any, Optional
 
-from .stages import LifecycleStage, features_available_at_stage
+from .stages import CustomerType, LifecycleStage, features_available_at_stage, features_available_for_customer
 
 
-def generate_reasons(row: dict[str, Any], stage: LifecycleStage | None = None) -> list[str]:
-    available = features_available_at_stage(stage) if stage else None
+def generate_reasons(
+    row: dict[str, Any],
+    stage: LifecycleStage | None = None,
+    customer_type: Optional[CustomerType] = None,
+) -> list[str]:
+    if customer_type == CustomerType.NEW and stage:
+        available = features_available_for_customer(stage, customer_type)
+    elif stage:
+        available = features_available_at_stage(stage)
+    else:
+        available = None
     reasons: list[str] = []
 
     def _can_use(feature: str) -> bool:
@@ -24,10 +33,21 @@ def generate_reasons(row: dict[str, Any], stage: LifecycleStage | None = None) -
     if _can_use("disp_email") and (row.get("disp_email") is True or row.get("disp_email") == 1):
         reasons.append("Email domain disposable/temporary terdeteksi saat registrasi")
 
+    if _can_use("email_rand"):
+        email_rand = float(row.get("email_rand", 0) or 0)
+        if email_rand > 3.5:
+            reasons.append(f"Nama email terlihat acak/generated (entropi {email_rand:.2f})")
+
     if _can_use("phone_score"):
         phone_score = float(row.get("phone_score", 0) or 0)
         if phone_score > 0.7:
             reasons.append(f"Pola nomor HP mencurigakan (skor {phone_score:.2f})")
+
+    if _can_use("is_email_verified") and row.get("is_email_verified") == 0:
+        reasons.append("Email belum diverifikasi saat registrasi")
+
+    if _can_use("is_phone_verified") and row.get("is_phone_verified") == 0:
+        reasons.append("Nomor HP belum diverifikasi saat registrasi")
 
     if _can_use("max_acc_addr"):
         max_addr = float(row.get("max_acc_addr", 0) or 0)
