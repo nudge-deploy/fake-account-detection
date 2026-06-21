@@ -1,35 +1,24 @@
 <!--
 Purpose: Documentation index for the fraud detection project.
 Used by: Developers, reviewers, and report writers looking for project docs.
-Main dependencies: Markdown files in docs/.
-Public/main functions: N/A documentation only.
-Side effects: None.
 -->
 
 # Documentation Index
 
-Berikut daftar dokumen utama project:
-
-| Dokumen | Isi |
-|---|---|
-| `01_mobile_app_exploration.md` | Eksplorasi konteks aplikasi dan problem fraud. |
-| `02_data_model_design.md` | Desain data model raw dan relasinya. |
-| `03_synthetic_data_generation.md` | Cara generate data synthetic. |
-| `04_eda_report.md` | Ringkasan EDA. |
-| `05_feature_engineering.md` | Ringkasan feature engineering ABT. |
-| `06_modeling_report.md` | Ringkasan training dan evaluasi model new-user dan existing-user. |
-| `07_graph_analytics_design.md` | Desain graph analytics. |
-| `08_chatbot_design.md` | Desain chatbot dan fallback logic. |
-| `09_api_documentation.md` | Dokumentasi endpoint API. |
-| `10_deployment_guide.md` | Panduan deploy. |
-| `chatbot_query_data_source.md` | Mapping query chatbot ke sumber data. |
-| `inference_existing_vs_new_user.md` | Perbedaan flow inference untuk existing user dan new user. |
-| `inference_workflow_detailed.md` | Alur detail inference dari extraction sampai prediction. |
-
-## Catatan
-
-- Jika ingin penjelasan feature engineering yang lebih detail dan mudah dibaca, buka `05_feature_engineering.md`.
-- Jika ingin tahu sumber jawaban chatbot non-LLM, buka `chatbot_query_data_source.md`.
-- Jika ingin memahami pemisahan flow inference existing vs new user, buka `inference_existing_vs_new_user.md`.
-- Jika ingin melihat alur detail extraction sampai prediction, buka `inference_workflow_detailed.md`.
-- Jika ingin melihat ringkasan training model terbaru, buka `06_modeling_report.md`.
+| # | Dokumen | Isi |
+|---|---------|-----|
+| 01 | `01_mobile_app_exploration.md` | Konteks aplikasi Alfagift dan pola fraud yang dipetakan |
+| 02 | `02_data_model_design.md` | Desain 14 tabel raw + ABT dan relasinya |
+| 03 | `03_synthetic_data_generation.md` | Cara generate 10.000 user dengan noise realistis |
+| 04 | `04_eda_report.md` | Ringkasan EDA dan distribusi label |
+| 05 | `05_feature_engineering.md` | 64 fitur model: formula, business meaning, contoh nilai |
+| 06 | `06_graph_analytics.md` | Graph fraud ring detection, ego-network BFS, graph features |
+| 07 | `07_modeling_report.md` | Training XGBoost (F1=94.52%) & Logistic Regression (F1=98.69%) |
+| 08 | `08_inference_model_selection.md` | Perbedaan jalur inference new user vs existing user |
+| 09 | `09_inference_workflow.md` | Alur detail dari payload event ke output prediksi |
+| 10 | `10_api_documentation.md` | Semua endpoint FastAPI + contoh request/response |
+| 11 | `11_chatbot_design.md` | Arsitektur chatbot hybrid Groq + fallback rule-based |
+| 12 | `12_chatbot_query_sources.md` | Mapping intent chatbot ke sumber data (ModelService/GraphService) |
+| 13 | `13_deployment_guide.md` | Deploy: VPS + Docker + Nginx + SSL + Vercel |
+| 14 | `14_data_dictionary.md` | Dictionary semua kolom tabel raw dan ABT |
+| — | `SYSTEM_DOCUMENTATION.md` | **Dokumen terpadu** — ringkasan seluruh pipeline end-to-end |
