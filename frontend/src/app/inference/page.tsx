@@ -348,7 +348,7 @@ const buildFullJourneyPayload = (): AlfagiftLifecyclePayload => ({
  setResult(data);
 } catch (err) {
  console.error(err);
- setError(extractErrorMessage(err, 'Failed to run inference. Make sure the FastAPI backend is running on port 8000.'));
+ setError(extractErrorMessage(err, 'Gagal menjalankan inferensi. Pastikan koneksi ke API tersedia.'));
 } finally {
  setLoading(false);
 }

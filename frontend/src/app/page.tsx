@@ -23,7 +23,7 @@ export default function OverviewPage() {
  setTopUsers(usersData.users);
  } catch (err: any) {
  console.error(err);
- setError('Gagal memuat data dari server backend. Pastikan server FastAPI berjalan di port 8000.');
+ setError('Gagal memuat data dari server backend. Pastikan koneksi ke API tersedia.');
  } finally {
  setLoading(false);
  }
